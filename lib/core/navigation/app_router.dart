@@ -4,6 +4,10 @@ import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/create_profile_screen.dart';
+import '../../features/home/screens/main_layout.dart';
+import '../../features/lab_results/screens/lab_results_screen.dart';
+import '../../features/auth/screens/success_screen.dart';
+import '../../features/notifications/screens/notification_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -26,34 +30,39 @@ class AppRouter {
         builder: (context, state) => const CreateProfileScreen(),
       ),
       GoRoute(
-        path: '/home',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Home Screen - Coming Soon')),
-        ),
+        path: '/success',
+        builder: (context, state) => const SuccessScreen(),
       ),
-      GoRoute(
-        path: '/lab-results',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Lab Results Screen - Coming Soon')),
-        ),
-      ),
-      GoRoute(
-        path: '/appointments',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Appointments Screen - Coming Soon')),
-        ),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Profile Screen - Coming Soon')),
-        ),
+      ShellRoute(
+        builder: (context, state, child) => const MainLayout(),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const Scaffold(
+              body: Center(child: Text('Home Screen - Coming Soon')),
+            ),
+          ),
+          GoRoute(
+            path: '/lab-results',
+            builder: (context, state) => const LabResultsScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const Scaffold(
+              body: Center(child: Text('Profile Screen - Coming Soon')),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/admin-dashboard',
         builder: (context, state) => const Scaffold(
           body: Center(child: Text('Admin Dashboard - Coming Soon')),
         ),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

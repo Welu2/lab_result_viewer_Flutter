@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../../home/providers/profile_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Check if user has a profile
         final hasProfile = await context.read<AuthProvider>().checkAuthStatus();
         if (hasProfile) {
+          await context.read<ProfileProvider>().fetchProfile();
           context.go('/home');
         } else {
           context.go('/create-profile');

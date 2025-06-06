@@ -7,6 +7,7 @@ import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
 import '../models/auth_models.dart';
+import '../../home/providers/profile_provider.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   const CreateProfileScreen({super.key});
@@ -78,10 +79,20 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           emergencyContactRelation: _selectedRelative,
         );
 
-        await context.read<AuthProvider>().createProfile(request);
-        
-        if (mounted) {
-          context.go('/home');
+        final success = await context.read<AuthProvider>().createProfile(request);
+        if (success && mounted) {
+          await context.read<AuthProvider>().loadUserRole();
+          final role = context.read<AuthProvider>().userRole;
+          
+          await context.read<ProfileProvider>().fetchProfile();
+          
+          if (mounted) {
+            if (role == 'admin') {
+              context.go('/admin-dashboard');
+            } else {
+              context.go('/home');
+            }
+          }
         }
       } catch (e) {
         if (mounted) {

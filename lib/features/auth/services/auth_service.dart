@@ -48,7 +48,9 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> createProfile(CreateProfileRequest request) async {
+    print('Creating profile with data: ${request.toJson()}'); // Debug log
     final response = await _apiClient.post('/profile', data: request.toJson());
+    print('Profile creation response: ${response.data}'); // Debug log
     return response.data;
   }
 

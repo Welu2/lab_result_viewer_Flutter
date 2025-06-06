@@ -1,6 +1,6 @@
 {
-    "name": "lab_result_viewer",
-    "short_name": "lab_result_viewer",
+    "name": "lrv",
+    "short_name": "lrv",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

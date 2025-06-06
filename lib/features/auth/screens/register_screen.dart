@@ -36,7 +36,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (success && mounted) {
-        context.go('/create-profile');
+        await context.read<AuthProvider>().loadUserRole();
+        final role = context.read<AuthProvider>().userRole;
+        if (role == 'admin') {
+          context.go('/admin-dashboard');
+        } else {
+          context.go('/success');
+        }
       }
     }
   }
