@@ -2,316 +2,241 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
 import '../models/auth_models.dart';
 import '../../home/providers/profile_provider.dart';
 
-class CreateProfileScreen extends StatefulWidget {
+class CreateProfileScreen extends ConsumerStatefulWidget {
   const CreateProfileScreen({super.key});
 
   @override
-  State<CreateProfileScreen> createState() => _CreateProfileScreenState();
+  ConsumerState<CreateProfileScreen> createState() => _CreateProfileScreenState();
 }
 
-class _CreateProfileScreenState extends State<CreateProfileScreen> {
+class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
+  final _nameController = TextEditingController();
   final _dobController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
-  String? _selectedBloodGroup;
-  String? _selectedGender;
-  String? _selectedRelative;
-  String? _profileImagePath;
 
-  final List<String> _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  String? _selectedRelative;
+  String? _selectedGender;
+  String? _selectedBloodGroup;
+
+  final List<String> _relatives = ['Mother', 'Father', 'Brother', 'Sister'];
   final List<String> _genders = ['Male', 'Female'];
-  final List<String> _relatives = ['Father', 'Mother', 'Brother', 'Sister'];
+  final List<String> _bloodGroups = ['A', 'A+', 'A-', 'B', 'B+', 'B-', 'AB', 'AB+', 'AB-', 'O'];
 
   @override
   void dispose() {
-    _fullNameController.dispose();
+    _nameController.dispose();
     _dobController.dispose();
     _heightController.dispose();
     _weightController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
-    if (image != null) {
-      setState(() {
-        _profileImagePath = image.path;
-      });
-    }
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+  void _pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    
     if (picked != null) {
-      setState(() {
-        _dobController.text = '${picked.day}/${picked.month}/${picked.year}';
-      });
+      _dobController.text = "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
     }
   }
 
-  Future<void> _handleCreateProfile() async {
+  void _createProfile() async {
     if (_formKey.currentState?.validate() ?? false) {
-      try {
-        final request = CreateProfileRequest(
-          name: _fullNameController.text,
-          dateOfBirth: _dobController.text,
-          gender: _selectedGender ?? '',
-          height: double.tryParse(_heightController.text),
-          weight: double.tryParse(_weightController.text),
-          bloodType: _selectedBloodGroup,
-          emergencyContactRelation: _selectedRelative,
-        );
-
-        final success = await context.read<AuthProvider>().createProfile(request);
-        if (success && mounted) {
-          await context.read<AuthProvider>().loadUserRole();
-          final role = context.read<AuthProvider>().userRole;
-          
-          await context.read<ProfileProvider>().fetchProfile();
-          
-          if (mounted) {
-            if (role == 'admin') {
-              context.go('/admin-dashboard');
-            } else {
-              context.go('/home');
-            }
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
-          );
-        }
+      await ref.read(profileProvider.notifier).createProfile(
+        name: _nameController.text.trim(),
+        dateOfBirth: _dobController.text.trim(),
+        gender: _selectedGender ?? '',
+        height: double.tryParse(_heightController.text.trim()),
+        weight: double.tryParse(_weightController.text.trim()),
+        bloodType: _selectedBloodGroup,
+        relative: _selectedRelative,
+      );
+      if (mounted) {
+        context.go('/home');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(profileProvider);
     return Scaffold(
+      backgroundColor: const Color(0xFF24706B),
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        title: const Text('Create A Health Profile', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Stack(
+              alignment: Alignment.center,
               children: [
-                Text(
-                  'Create Profile',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF24706B),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(40),
+                      bottomRight: Radius.circular(40),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please fill in your personal information',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey,
-                  ),
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 60, color: Color(0xFF24706B)),
                 ),
-                const SizedBox(height: 32),
-                // Profile Image
-                Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage: _profileImagePath != null
-                            ? FileImage(File(_profileImagePath!))
-                            : null,
-                        child: _profileImagePath == null
-                            ? const Icon(Icons.person, size: 50)
-                            : null,
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'First name & Last name',
+                        border: OutlineInputBorder(),
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          child: IconButton(
-                            icon: const Icon(Icons.camera_alt, size: 18),
-                            color: Colors.white,
-                            onPressed: _pickImage,
+                      validator: (value) => value == null || value.isEmpty ? 'Enter your name' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedRelative,
+                            items: _relatives.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                            onChanged: (val) => setState(() => _selectedRelative = val),
+                            decoration: const InputDecoration(
+                              labelText: 'Relative',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null ? 'Select relative' : null,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                CustomTextField(
-                  label: 'Full Name',
-                  controller: _fullNameController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your full name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: _selectDate,
-                  child: AbsorbPointer(
-                    child: CustomTextField(
-                      label: 'Date of Birth',
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedGender,
+                            items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                            onChanged: (val) => setState(() => _selectedGender = val),
+                            decoration: const InputDecoration(
+                              labelText: 'Gender',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null ? 'Select gender' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
                       controller: _dobController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select your date of birth';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: InputDecoration(
-                    labelText: 'Gender',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  items: _genders.map((String gender) {
-                    return DropdownMenuItem<String>(
-                      value: gender,
-                      child: Text(gender),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedGender = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select your gender';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextField(
-                        label: 'Height (cm)',
-                        controller: _heightController,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your height';
-                          }
-                          return null;
-                        },
+                      readOnly: true,
+                      onTap: () => _pickDate(context),
+                      decoration: const InputDecoration(
+                        labelText: 'Date of Birth',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
                       ),
+                      validator: (value) => value == null || value.isEmpty ? 'Select date of birth' : null,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CustomTextField(
-                        label: 'Weight (kg)',
-                        controller: _weightController,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your weight';
-                          }
-                          return null;
-                        },
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _heightController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Height (cm)',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null || value.isEmpty ? 'Enter height' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _weightController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Weight (kg)',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null || value.isEmpty ? 'Enter weight' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedBloodGroup,
+                      items: _bloodGroups.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                      onChanged: (val) => setState(() => _selectedBloodGroup = val),
+                      decoration: const InputDecoration(
+                        labelText: 'Blood group',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) => value == null ? 'Select blood group' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF24706B),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: state.isLoading ? null : _createProfile,
+                        child: state.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Create Profile', style: TextStyle(fontSize: 16)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedBloodGroup,
-                  decoration: InputDecoration(
-                    labelText: 'Blood Group',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  items: _bloodGroups.map((String group) {
-                    return DropdownMenuItem<String>(
-                      value: group,
-                      child: Text(group),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedBloodGroup = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select your blood group';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedRelative,
-                  decoration: InputDecoration(
-                    labelText: 'Emergency Contact Relation',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  items: _relatives.map((String relative) {
-                    return DropdownMenuItem<String>(
-                      value: relative,
-                      child: Text(relative),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedRelative = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select emergency contact relation';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-                CustomButton(
-                  text: 'Create Profile',
-                  onPressed: _handleCreateProfile,
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

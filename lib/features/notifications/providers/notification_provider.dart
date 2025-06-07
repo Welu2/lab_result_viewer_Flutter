@@ -1,66 +1,76 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notification.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/auth/session_manager.dart';
+import '../services/notification_service.dart';
+import 'package:dio/dio.dart';
 
-class NotificationProvider with ChangeNotifier {
-  final ApiClient _apiClient;
-  final SessionManager _sessionManager;
-  List<AppNotification> _notifications = [];
-  bool _isLoading = false;
-  int _unreadCount = 0;
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  // You can use Dio or ApiClient as needed
+  return NotificationService(ApiClient().dio);
+});
 
-  NotificationProvider({
-    required ApiClient apiClient,
-    required SessionManager sessionManager,
-  })  : _apiClient = apiClient,
-        _sessionManager = sessionManager;
+final notificationProvider = StateNotifierProvider<NotificationNotifier, NotificationState>((ref) {
+  final notificationService = ref.watch(notificationServiceProvider);
+  return NotificationNotifier(notificationService);
+});
 
-  List<AppNotification> get notifications => _notifications;
-  bool get isLoading => _isLoading;
-  int get unreadCount => _unreadCount;
+class NotificationState {
+  final List<AppNotification> notifications;
+  final bool isLoading;
+  final int unreadCount;
 
-  Future<void> loadNotifications() async {
-    _isLoading = true;
-    notifyListeners();
+  NotificationState({
+    this.notifications = const [],
+    this.isLoading = false,
+    this.unreadCount = 0,
+  });
 
+  NotificationState copyWith({
+    List<AppNotification>? notifications,
+    bool? isLoading,
+    int? unreadCount,
+  }) {
+    return NotificationState(
+      notifications: notifications ?? this.notifications,
+      isLoading: isLoading ?? this.isLoading,
+      unreadCount: unreadCount ?? this.unreadCount,
+    );
+  }
+}
+
+class NotificationNotifier extends StateNotifier<NotificationState> {
+  final NotificationService _service;
+
+  NotificationNotifier(this._service) : super(NotificationState());
+
+  Future<void> fetchNotifications(String token) async {
+    state = state.copyWith(isLoading: true);
     try {
-      final response = await _apiClient.get('/notifications/user');
-      _notifications = (response.data as List)
-          .map((json) => AppNotification.fromJson(json))
-          .toList();
-      _unreadCount = _notifications.where((n) => !n.isRead).length;
+      final notifications = await _service.fetchNotifications(token);
+      state = state.copyWith(
+        isLoading: false,
+        notifications: notifications,
+        unreadCount: notifications.where((n) => !n.isRead).length,
+      );
     } catch (e) {
-      debugPrint('Error loading notifications: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(isLoading: false);
     }
   }
 
-  Future<void> markAsRead(int id) async {
+  Future<void> markAsRead(String token, int id) async {
     try {
-      await _apiClient.patch('/notifications/$id/read');
-      await loadNotifications(); // Refresh the list
+      await _service.markAsRead(token, id);
+      await fetchNotifications(token); // Refresh the list
     } catch (e) {
-      debugPrint('Error marking notification as read: $e');
+      // Handle error if needed
     }
   }
 
-  Future<void> markAllAsRead() async {
-    final unread = _notifications.where((n) => !n.isRead);
+  Future<void> markAllAsRead(String token) async {
+    final unread = state.notifications.where((n) => !n.isRead);
     for (final notification in unread) {
-      await markAsRead(notification.id);
-    }
-  }
-
-  Future<void> fetchUnreadCount() async {
-    try {
-      final response = await _apiClient.get('/notifications/unread-count');
-      _unreadCount = response.data['count'] ?? 0;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error fetching unread count: $e');
+      await markAsRead(token, notification.id);
     }
   }
 } 

@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/auth/session_manager.dart';
 import '../providers/notification_provider.dart';
 import '../models/notification.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends ConsumerWidget {
   const NotificationScreen({super.key});
 
+  Future<String?> _getToken() async {
+    final sessionManager = SessionManager();
+    return await sessionManager.getToken();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(notificationProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications'),
@@ -17,38 +25,41 @@ class NotificationScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         actions: [
-          Consumer<NotificationProvider>(
-            builder: (context, provider, _) {
-              if (provider.unreadCount > 0) {
-                return TextButton(
-                  onPressed: () => provider.markAllAsRead(),
-                  child: const Text('Mark all as read'),
-                );
+          TextButton(
+            onPressed: () async {
+              final token = await _getToken();
+              if (token != null) {
+                await ref.read(notificationProvider.notifier).markAllAsRead(token);
               }
-              return const SizedBox.shrink();
             },
+            child: const Text('Mark all as read'),
           ),
         ],
       ),
-      body: Consumer<NotificationProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading) {
+      body: Builder(
+        builder: (context) {
+          if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (provider.notifications.isEmpty) {
+          if (state.notifications.isEmpty) {
             return const Center(
               child: Text('No notifications'),
             );
           }
 
           return ListView.builder(
-            itemCount: provider.notifications.length,
+            itemCount: state.notifications.length,
             itemBuilder: (context, index) {
-              final notification = provider.notifications[index];
+              final notification = state.notifications[index];
               return NotificationItem(
                 notification: notification,
-                onTap: () => provider.markAsRead(notification.id),
+                onTap: () async {
+                  final token = await _getToken();
+                  if (token != null) {
+                    await ref.read(notificationProvider.notifier).markAsRead(token, notification.id);
+                  }
+                },
               );
             },
           );

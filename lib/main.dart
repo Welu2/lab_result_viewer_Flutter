@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/api/api_client.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -11,51 +11,45 @@ import 'features/notifications/providers/notification_provider.dart';
 import 'features/home/providers/health_summary_provider.dart';
 import 'features/lab_results/providers/lab_results_provider.dart';
 import 'features/lab_results/services/lab_results_service.dart';
+import 'features/notifications/services/notification_service.dart' as notif_service;
+import 'package:dio/dio.dart';
 
 void main() {
-  runApp(const MyApp());
+  final apiClient = ApiClient();
+  final sessionManager = SessionManager();
+
+  // Initialize services
+  final authService = AuthService(apiClient, sessionManager);
+  final profileService = ProfileService(sessionManager, apiClient);
+  final notificationService = notif_service.NotificationService(apiClient.dio);
+  final healthSummaryService = HealthSummaryService(apiClient);
+  final labResultsService = LabResultsService(apiClient);
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        authServiceProvider.overrideWithValue(authService),
+        profileServiceProvider.overrideWithValue(profileService),
+        notificationServiceProvider.overrideWithValue(notificationService),
+        healthSummaryServiceProvider.overrideWithValue(healthSummaryService),
+        labResultsServiceProvider.overrideWithValue(labResultsService),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final apiClient = ApiClient();
-    final sessionManager = SessionManager();
-    final authService = AuthService(apiClient, sessionManager);
-
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(authService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ProfileProvider(sessionManager, apiClient),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => NotificationProvider(
-            apiClient: apiClient,
-            sessionManager: sessionManager,
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => HealthSummaryProvider(apiClient),
-        ),
-        Provider(
-          create: (_) => LabResultsService(apiClient),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => LabResultsProvider(context.read<LabResultsService>()),
-        ),
-      ],
-      child: MaterialApp.router(
-        title: 'Lab Result Viewer',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: AppRouter.router,
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
+      title: 'Lab Result Viewer',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      routerConfig: AppRouter.router,
     );
   }
 }

@@ -46,4 +46,8 @@ class SessionManager {
   Future<void> clearSession() async {
     await _storage.deleteAll();
   }
+
+  Future<void> saveToken(String token) async {
+    await _storage.write(key: _tokenKey, value: token);
+  }
 } 

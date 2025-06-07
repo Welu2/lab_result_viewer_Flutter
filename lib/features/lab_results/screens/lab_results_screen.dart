@@ -1,48 +1,63 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'dart:io';
 import '../providers/lab_results_provider.dart';
 import '../models/lab_result.dart';
 import '../services/lab_results_service.dart';
 
-class LabResultsScreen extends StatefulWidget {
+class LabResultsScreen extends ConsumerStatefulWidget {
   const LabResultsScreen({super.key});
 
   @override
-  State<LabResultsScreen> createState() => _LabResultsScreenState();
+  ConsumerState<LabResultsScreen> createState() => _LabResultsScreenState();
 }
 
-class _LabResultsScreenState extends State<LabResultsScreen> {
+class _LabResultsScreenState extends ConsumerState<LabResultsScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LabResultsProvider>().fetchLabResults();
+      ref.read(labResultsProvider.notifier).fetchLabResults();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LabResultsProvider>();
+    final state = ref.watch(labResultsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Lab Results')),
       body: Builder(
         builder: (context) {
-          if (provider.isLoading) {
+          if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (provider.error != null) {
-            return Center(child: Text('Error: ${provider.error}'));
+          if (state.error != null) {
+            return Center(child: Text('Error: ${state.error}'));
           }
-          if (provider.labResults.isEmpty) {
-            return const Center(child: Text('No Lab Results Found'));
+          if (state.labResults.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.insert_drive_file, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('No Lab Results Found', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Text('No results match your filters', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            );
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: provider.labResults.length,
+            itemCount: state.labResults.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              final result = provider.labResults[index];
-              return LabResultCard(result: result);
+              final result = state.labResults[index];
+              return LabResultCard(result: result, ref: ref);
             },
           );
         },
@@ -53,7 +68,8 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
 
 class LabResultCard extends StatelessWidget {
   final LabResult result;
-  const LabResultCard({super.key, required this.result});
+  final WidgetRef ref;
+  const LabResultCard({super.key, required this.result, required this.ref});
 
   Color _statusColor(String? status) {
     switch (status?.toLowerCase()) {
@@ -86,8 +102,9 @@ class LabResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.grey[100],
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -100,13 +117,11 @@ class LabResultCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(result.title ?? '', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(result.title ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       if ((result.reportDate ?? '').isNotEmpty)
-                        Text(result.reportDate!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
-                      if ((result.reportType ?? '').isNotEmpty)
-                        Text(result.reportType!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                        Text(result.reportDate!, style: const TextStyle(color: Colors.grey, fontSize: 13)),
                       if ((result.status ?? '').isNotEmpty)
-                        Text(_statusText(result.status), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: _statusColor(result.status), fontWeight: FontWeight.w600)),
+                        Text(_statusText(result.status), style: TextStyle(color: _statusColor(result.status), fontWeight: FontWeight.w600, fontSize: 13)),
                     ],
                   ),
                 ),
@@ -114,7 +129,7 @@ class LabResultCard extends StatelessWidget {
                   icon: const Icon(Icons.share_outlined),
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () {
-                    _showShareDialog(context, result);
+                    _showShareDialog(context, ref, result);
                   },
                 ),
               ],
@@ -124,8 +139,12 @@ class LabResultCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2B6B6B),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    ),
                     onPressed: () {
-                      final service = context.read<LabResultsService>();
+                      final service = ref.read(labResultsServiceProvider);
                       final url = service.getDownloadUrl(result.id);
                       _openUrl(context, url);
                     },
@@ -135,12 +154,22 @@ class LabResultCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    ),
                     onPressed: () {
-                      final service = context.read<LabResultsService>();
+                      final service = ref.read(labResultsServiceProvider);
                       final url = service.getDownloadUrl(result.id);
                       _openUrl(context, url);
                     },
-                    child: const Text('Download'),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.download_outlined, size: 18),
+                        SizedBox(width: 4),
+                        Text('Download'),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -152,12 +181,38 @@ class LabResultCard extends StatelessWidget {
   }
 
   void _openUrl(BuildContext context, String url) async {
-    // Use url_launcher or similar package to open the URL
-    // TODO: Implement actual PDF viewing/downloading
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Open: $url')));
+    try {
+      final tempDir = await getDownloadsDirectory();
+      if (tempDir == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not access Downloads directory.')),
+        );
+        return;
+      }
+      final fileName = 'lab_result_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filePath = '${tempDir.path}/$fileName';
+      final file = File(filePath);
+      final dio = Dio();
+      final response = await dio.download(
+        url,
+        filePath,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (response.statusCode == 200) {
+        await OpenFile.open(filePath);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Download failed: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
-  void _showShareDialog(BuildContext context, LabResult result) {
+  void _showShareDialog(BuildContext context, WidgetRef ref, LabResult result) {
     showDialog(
       context: context,
       builder: (context) {
@@ -168,7 +223,7 @@ class LabResultCard extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  final service = context.read<LabResultsService>();
+                  final service = ref.read(labResultsServiceProvider);
                   final downloadUrl = service.getDownloadUrl(result.id);
                   if (downloadUrl.isNotEmpty) {
                     // Copy to clipboard
@@ -182,7 +237,7 @@ class LabResultCard extends StatelessWidget {
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: () {
-                  final service = context.read<LabResultsService>();
+                  final service = ref.read(labResultsServiceProvider);
                   final url = service.getDownloadUrl(result.id);
                   _openUrl(context, url);
                   Navigator.of(context).pop();

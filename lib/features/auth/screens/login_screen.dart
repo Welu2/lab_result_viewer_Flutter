@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
 import '../../home/providers/profile_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -29,16 +29,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      final success = await context.read<AuthProvider>().login(
+      final success = await ref.read(authProvider.notifier).login(
         _emailController.text,
         _passwordController.text,
       );
 
       if (success && mounted) {
         // Check if user has a profile
-        final hasProfile = await context.read<AuthProvider>().checkAuthStatus();
+        final hasProfile = await ref.read(authProvider.notifier).checkAuthStatus();
         if (hasProfile) {
-          await context.read<ProfileProvider>().fetchProfile();
+          await ref.read(profileProvider.notifier).fetchProfile();
           context.go('/home');
         } else {
           context.go('/create-profile');
@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -121,11 +121,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                if (authProvider.error != null)
+                if (authState.error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Text(
-                      authProvider.error!,
+                      authState.error!,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -133,8 +133,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 CustomButton(
                   text: 'Log In',
-                  onPressed: authProvider.isLoading ? () {} : () => _handleLogin(),
-                  isLoading: authProvider.isLoading,
+                  onPressed: authState.isLoading ? () {} : () => _handleLogin(),
+                  isLoading: authState.isLoading,
                 ),
                 const SizedBox(height: 16),
                 Row(

@@ -1,77 +1,110 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
 import '../models/auth_models.dart';
 
-class AuthProvider extends ChangeNotifier {
+final authServiceProvider = Provider<AuthService>((ref) {
+  throw UnimplementedError('AuthService must be provided');
+});
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return AuthNotifier(authService);
+});
+
+class AuthState {
+  final bool isLoading;
+  final String? userRole;
+  final String? error;
+
+  AuthState({
+    this.isLoading = false,
+    this.userRole,
+    this.error,
+  });
+
+  AuthState copyWith({
+    bool? isLoading,
+    String? userRole,
+    String? error,
+  }) {
+    return AuthState(
+      isLoading: isLoading ?? this.isLoading,
+      userRole: userRole ?? this.userRole,
+      error: error ?? this.error,
+    );
+  }
+}
+
+class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
-  bool _isLoading = false;
-  String? _userRole;
-  String? _error;
 
-  AuthProvider(this._authService);
-
-  bool get isLoading => _isLoading;
-  String? get userRole => _userRole;
-  String? get error => _error;
+  AuthNotifier(this._authService) : super(AuthState());
 
   Future<bool> login(String email, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       final response = await _authService.login(email, password);
-      _userRole = response.role;
+      state = state.copyWith(
+        isLoading: false,
+        userRole: response.role,
+      );
       return true;
     } catch (e) {
-      _error = e.toString();
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
       return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
-  Future<bool> register(String email, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
+  Future<String?> register({
+    required String email,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _authService.register(email, password);
-      _userRole = response.role;
-      return true;
+      final response = await _authService.register(
+        email: email,
+        password: password,
+      );
+      state = state.copyWith(
+        isLoading: false,
+        userRole: response.role,
+      );
+      return response.role;
     } catch (e) {
-      _error = e.toString();
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return null;
     }
   }
 
   Future<bool> createProfile(CreateProfileRequest request) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       await _authService.createProfile(request);
+      state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      _error = e.toString();
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
       return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
   Future<void> logout() async {
     await _authService.logout();
-    _userRole = null;
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(
+      userRole: null,
+      error: null,
+    );
   }
 
   Future<bool> checkAuthStatus() async {
@@ -79,12 +112,11 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> loadUserRole() async {
-    _userRole = await _authService.getUserRole();
-    notifyListeners();
+    final role = await _authService.getUserRole();
+    state = state.copyWith(userRole: role);
   }
 
   void clearError() {
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(error: null);
   }
 }

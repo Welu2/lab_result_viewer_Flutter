@@ -25,25 +25,24 @@ class AuthService {
     return authResponse;
   }
 
-  Future<AuthResponse> register(String email, String password) async {
+  Future<AuthResponse> register({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final request = RegisterRequest(email: email, password: password);
-      final response = await _apiClient.post('/auth/signup', data: request.toJson());
+      final response = await _apiClient.post('/auth/signup', data: {
+        'email': email,
+        'password': password,
+      });
       
-      final authResponse = AuthResponse.fromJson(response.data);
-      await _sessionManager.saveSession(
-        token: authResponse.accessToken,
-        role: authResponse.role,
-        userId: authResponse.userId,
-        email: authResponse.email,
-      );
+      print('Registration response: ${response.data}');
       
-      return authResponse;
+      final token = response.data['token']['access_token'] as String;
+      await _sessionManager.saveToken(token);
+      
+      return AuthResponse.fromJson(response.data);
     } catch (e) {
-      if (e.toString().contains('User already exists')) {
-        throw Exception('An account with this email already exists. Please try logging in instead.');
-      }
-      rethrow;
+      throw Exception('Registration failed: ${e.toString()}');
     }
   }
 

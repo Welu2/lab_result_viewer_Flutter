@@ -6,7 +6,7 @@ class NotificationService {
 
   NotificationService(this._dio);
 
-  Future<List<AppNotification>> getUserNotifications(String token) async {
+  Future<List<AppNotification>> fetchNotifications(String token) async {
     try {
       final response = await _dio.get(
         '/notifications/user',
@@ -14,7 +14,6 @@ class NotificationService {
           headers: {'Authorization': token},
         ),
       );
-      
       return (response.data as List)
           .map((json) => AppNotification.fromJson(json))
           .toList();

@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/bottom_nav_bar.dart';
 import 'home_screen.dart';
 import '../providers/profile_provider.dart';
-import 'package:provider/provider.dart';
 import '../../lab_results/screens/lab_results_screen.dart';
 
-class MainLayout extends StatefulWidget {
+class MainLayout extends ConsumerStatefulWidget {
   const MainLayout({super.key});
 
   @override
-  State<MainLayout> createState() => _MainLayoutState();
+  ConsumerState<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
+class _MainLayoutState extends ConsumerState<MainLayout> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
     const HomeScreen(),
+    const Center(child: Text('Appts.')),
     const LabResultsScreen(),
     const Center(child: Text('Profile')), // TODO: Replace with ProfileScreen
   ];
@@ -30,8 +31,8 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = context.watch<ProfileProvider>();
-    print('Current user in MainLayout: ${profileProvider.name}');
+    final profileState = ref.watch(profileProvider);
+    print('Current user in MainLayout: ${profileState.name}');
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavBar(
