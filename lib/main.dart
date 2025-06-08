@@ -7,20 +7,18 @@ import 'core/auth/session_manager.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/services/auth_service.dart';
 import 'features/home/providers/profile_provider.dart';
-import 'features/notifications/providers/notification_provider.dart';
 import 'features/home/providers/health_summary_provider.dart';
 import 'features/lab_results/providers/lab_results_provider.dart';
 import 'features/lab_results/services/lab_results_service.dart';
+import 'features/notifications/providers/notification_provider.dart';
 import 'features/notifications/services/notification_service.dart' as notif_service;
 import 'package:dio/dio.dart';
 
 void main() {
+  // Initialize services
   final apiClient = ApiClient();
   final sessionManager = SessionManager();
-
-  // Initialize services
   final authService = AuthService(apiClient, sessionManager);
-  final profileService = ProfileService(sessionManager, apiClient);
   final notificationService = notif_service.NotificationService(apiClient.dio);
   final healthSummaryService = HealthSummaryService(apiClient);
   final labResultsService = LabResultsService(apiClient);
@@ -29,7 +27,6 @@ void main() {
     ProviderScope(
       overrides: [
         authServiceProvider.overrideWithValue(authService),
-        profileServiceProvider.overrideWithValue(profileService),
         notificationServiceProvider.overrideWithValue(notificationService),
         healthSummaryServiceProvider.overrideWithValue(healthSummaryService),
         labResultsServiceProvider.overrideWithValue(labResultsService),

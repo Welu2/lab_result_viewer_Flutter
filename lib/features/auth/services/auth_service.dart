@@ -10,19 +10,14 @@ class AuthService {
 
   AuthService(this._apiClient, this._sessionManager);
 
-  Future<AuthResponse> login(String email, String password) async {
+  Future<LoginResponse> login(String email, String password) async {
     final request = LoginRequest(email: email, password: password);
     final response = await _apiClient.post('/auth/login', data: request.toJson());
     
-    final authResponse = AuthResponse.fromJson(response.data);
-    await _sessionManager.saveSession(
-      token: authResponse.accessToken,
-      role: authResponse.role,
-      userId: authResponse.userId,
-      email: authResponse.email,
-    );
+    final loginResponse = LoginResponse.fromJson(response.data);
+    await _sessionManager.saveToken(loginResponse.token.accessToken);
     
-    return authResponse;
+    return loginResponse;
   }
 
   Future<AuthResponse> register({
@@ -30,27 +25,82 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final response = await _apiClient.post('/auth/signup', data: {
-        'email': email,
-        'password': password,
-      });
-      
+      final request = RegisterRequest(email: email, password: password);
+      final response = await _apiClient.post('/auth/signup', data: request.toJson());
       print('Registration response: ${response.data}');
       
-      final token = response.data['token']['access_token'] as String;
-      await _sessionManager.saveToken(token);
+      final authResponse = AuthResponse.fromJson(response.data);
       
-      return AuthResponse.fromJson(response.data);
+      // Save the session after successful registration
+      await saveSession(
+        token: authResponse.token.accessToken,
+        role: authResponse.user.role,
+        userId: authResponse.user.id,
+        email: authResponse.user.email,
+      );
+      
+      return authResponse;
     } catch (e) {
-      throw Exception('Registration failed: ${e.toString()}');
+      print('Registration error: $e');
+      rethrow;
     }
   }
 
-  Future<Map<String, dynamic>> createProfile(CreateProfileRequest request) async {
-    print('Creating profile with data: ${request.toJson()}'); // Debug log
-    final response = await _apiClient.post('/profile', data: request.toJson());
-    print('Profile creation response: ${response.data}'); // Debug log
-    return response.data;
+  Future<void> saveSession({
+    required String token,
+    required String role,
+    required int userId,
+    required String email,
+  }) async {
+    await _sessionManager.saveSession(
+      token: token,
+      role: role,
+      userId: userId,
+      email: email,
+    );
+  }
+
+  Future<ProfileResponse> createProfile(CreateProfileRequest request) async {
+    print('Creating profile with data: ${request.toJson()}');
+    try {
+      final token = await _sessionManager.getToken();
+      print('Current auth token: $token');
+      
+      if (token == null) {
+        throw Exception('No authentication token found. Please log in again.');
+      }
+      
+      // Validate required fields
+      if (request.name.isEmpty) {
+        throw Exception('Name is required');
+      }
+      if (request.dateOfBirth.isEmpty) {
+        throw Exception('Date of birth is required');
+      }
+      if (request.gender.isEmpty) {
+        throw Exception('Gender is required');
+      }
+      
+      final response = await _apiClient.post('/profile', data: request.toJson());
+      print('Profile creation response: ${response.data}');
+      
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception('Failed to create profile. Status code: ${response.statusCode}');
+      }
+      
+      return ProfileResponse.fromJson(response.data);
+    } catch (e) {
+      print('Error creating profile: $e');
+      if (e is DioException) {
+        if (e.response?.statusCode == 401) {
+          throw Exception('Session expired. Please log in again.');
+        }
+        if (e.response?.statusCode == 400) {
+          throw Exception('Invalid profile data. Please check your input.');
+        }
+      }
+      rethrow;
+    }
   }
 
   Future<void> logout() async {
@@ -67,5 +117,15 @@ class AuthService {
 
   Future<String?> getToken() async {
     return await _sessionManager.getToken();
+  }
+
+  Future<ProfileResponse> getProfile() async {
+    try {
+      final response = await _apiClient.get('/profile/me');
+      return ProfileResponse.fromJson(response.data);
+    } catch (e) {
+      print('Error getting profile: $e');
+      rethrow;
+    }
   }
 } 

@@ -13,24 +13,24 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 
 class AuthState {
   final bool isLoading;
-  final String? userRole;
   final String? error;
+  final String? userRole;
 
   AuthState({
     this.isLoading = false,
-    this.userRole,
     this.error,
+    this.userRole,
   });
 
   AuthState copyWith({
     bool? isLoading,
-    String? userRole,
     String? error,
+    String? userRole,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
+      error: error,
       userRole: userRole ?? this.userRole,
-      error: error ?? this.error,
     );
   }
 }
@@ -42,12 +42,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
-      final response = await _authService.login(email, password);
+      await _authService.login(email, password);
+      
+      // After successful login and token saving, fetch the user's profile
+      final profile = await _authService.getProfile();
+
       state = state.copyWith(
         isLoading: false,
-        userRole: response.role,
+        userRole: profile.user.role,
       );
       return true;
     } catch (e) {
@@ -69,11 +72,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
         email: email,
         password: password,
       );
+      
+      // Save the session with the token and user info
+      await _authService.saveSession(
+        token: response.token.accessToken,
+        role: response.user.role,
+        userId: response.user.id,
+        email: response.user.email,
+      );
+      
       state = state.copyWith(
         isLoading: false,
-        userRole: response.role,
+        userRole: response.user.role,
       );
-      return response.role;
+      return response.user.role;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -87,8 +99,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      await _authService.createProfile(request);
-      state = state.copyWith(isLoading: false);
+      final response = await _authService.createProfile(request);
+      state = state.copyWith(
+        isLoading: false,
+        userRole: response.user.role,
+      );
       return true;
     } catch (e) {
       state = state.copyWith(

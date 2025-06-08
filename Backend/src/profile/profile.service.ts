@@ -17,7 +17,10 @@ export class ProfileService {
   ) {}
 
   async create(data: CreateProfileDto & { user: User }) {
-    const profile = this.profileRepository.create(data);
+    const profile = this.profileRepository.create({
+      ...data,
+      dateOfBirth: new Date(data.dateOfBirth),
+    });
     return this.profileRepository.save(profile);
   }
 

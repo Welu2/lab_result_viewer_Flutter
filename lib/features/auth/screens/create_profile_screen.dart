@@ -22,6 +22,7 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
   final _dobController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   String? _selectedRelative;
   String? _selectedGender;
@@ -37,6 +38,7 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
     _dobController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -48,24 +50,27 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      _dobController.text = "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
+      _dobController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
     }
   }
 
-  void _createProfile() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      await ref.read(profileProvider.notifier).createProfile(
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      final request = CreateProfileRequest(
         name: _nameController.text.trim(),
         dateOfBirth: _dobController.text.trim(),
-        gender: _selectedGender ?? '',
+        gender: _selectedGender ?? 'male',
         height: double.tryParse(_heightController.text.trim()),
         weight: double.tryParse(_weightController.text.trim()),
         bloodType: _selectedBloodGroup,
-        relative: _selectedRelative,
+        phoneNumber: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
       );
-      if (mounted) {
-        context.go('/home');
-      }
+
+      ref.read(authProvider.notifier).createProfile(request).then((success) {
+        if (success) {
+          context.go('/home');
+        }
+      });
     }
   }
 
@@ -142,26 +147,28 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: _selectedRelative,
-                            items: _relatives.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
-                            onChanged: (val) => setState(() => _selectedRelative = val),
                             decoration: const InputDecoration(
                               labelText: 'Relative',
                               border: OutlineInputBorder(),
                             ),
+                            items: _relatives.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                            onChanged: (val) => setState(() => _selectedRelative = val),
                             validator: (value) => value == null ? 'Select relative' : null,
+                            isExpanded: true,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: _selectedGender,
-                            items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
-                            onChanged: (val) => setState(() => _selectedGender = val),
                             decoration: const InputDecoration(
                               labelText: 'Gender',
                               border: OutlineInputBorder(),
                             ),
+                            items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                            onChanged: (val) => setState(() => _selectedGender = val),
                             validator: (value) => value == null ? 'Select gender' : null,
+                            isExpanded: true,
                           ),
                         ),
                       ],
@@ -209,13 +216,14 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _selectedBloodGroup,
-                      items: _bloodGroups.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                      onChanged: (val) => setState(() => _selectedBloodGroup = val),
                       decoration: const InputDecoration(
-                        labelText: 'Blood group',
+                        labelText: 'Blood Type',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null ? 'Select blood group' : null,
+                      items: _bloodGroups.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                      onChanged: (val) => setState(() => _selectedBloodGroup = val),
+                      validator: (value) => value == null ? 'Select blood type' : null,
+                      isExpanded: true,
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
@@ -226,7 +234,7 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        onPressed: state.isLoading ? null : _createProfile,
+                        onPressed: state.isLoading ? null : _submitForm,
                         child: state.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : const Text('Create Profile', style: TextStyle(fontSize: 16)),
