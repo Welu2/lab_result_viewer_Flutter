@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/profile_provider.dart';
 
 class UserProfileScreen extends ConsumerWidget {
@@ -8,108 +9,184 @@ class UserProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
+    final profileNotifier = ref.read(profileProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 0, // Remove space if not needed
+        title: const Text('Profile'),
+        centerTitle: true,
         elevation: 0,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// Header Row (Avatar, Hello, Bell)
-              Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.grey,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Hello, ${profile.name}',
-                      style: Theme.of(context).textTheme.titleLarge,
+              // Profile Header with Avatar and Name
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.blue.shade100,
+                      child: Text(
+                        profile.name?.substring(0, 1).toUpperCase() ?? 'H',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              /// Search Field
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      profile.name ?? 'Haymiuli',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      profile.dateOfBirth ?? 'Unknown DOB',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              /// Services Title
-              Text(
-                'Services',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              // === Profile Actions ===
+
+              // Change Email
+              _buildProfileAction(
+                context,
+                icon: Icons.email,
+                title: 'Change Email',
+                showChevron: true,
+                onTap: () async {
+                  final newEmail = await showDialog<String>(
+                    context: context,
+                    builder: (context) {
+                      final controller = TextEditingController();
+                      return AlertDialog(
+                        title: const Text('Change Email'),
+                        content: TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter new email',
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context, controller.text.trim());
+                            },
+                            child: const Text('Save'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (newEmail != null && newEmail.isNotEmpty) {
+                    await profileNotifier.changeEmail(newEmail);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Email changed successfully')),
+                      );
+                    }
+                  }
+                },
               ),
 
-              const SizedBox(height: 12),
-
-              /// Service Cards Grid
-              GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.2,
-                physics: const NeverScrollableScrollPhysics(),
-                children: const [
-                  ServiceCard(title: 'Ultrasound'),
-                  ServiceCard(title: 'CT Scan'),
-                  ServiceCard(title: 'MRI'),
-                  ServiceCard(title: 'Blood Work'),
-                ],
+              // Notification Toggle
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications, color: Theme.of(context).primaryColor),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Notification Setting',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                    Switch(
+                      value: profile.notificationsEnabled,
+                      onChanged: (value) async {
+                        await profileNotifier.toggleNotificationSetting(value);
+                      },
+                    ),
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 20),
+              // Log Out
+              _buildProfileAction(
+                context,
+                icon: Icons.logout,
+                title: 'Log Out',
+                showChevron: false,
+                onTap: () async {
+                  await profileNotifier.logout();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
+                },
+              ),
 
-              /// Health Summary Card
-              Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.monitor_heart, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text(
-                            'Health Summary',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              const Divider(height: 40),
+
+              // Delete Profile
+              Center(
+                child: TextButton(
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Confirm Delete'),
+                        content: const Text(
+                            'Are you sure you want to delete your profile? This cannot be undone.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          SummaryColumn(title: 'Total Tests', value: '0'),
-                          SummaryColumn(title: 'Abnormal Results', value: '0'),
-                        ],
-                      )
-                    ],
+                    );
+
+                    if (confirmed == true) {
+                      await profileNotifier.deleteProfile();
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
+                    }
+                  },
+                  child: const Text(
+                    'Delete Profile',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -117,69 +194,36 @@ class UserProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
-
-      /// Bottom Navigation Bar (Optional)
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2, // Profile selected
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.insert_chart), label: 'Lab Results'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
-}
 
-class ServiceCard extends StatelessWidget {
-  final String title;
-
-  const ServiceCard({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: const Color(0xFF2B6F71),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 3,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildProfileAction(
+      BuildContext context, {
+        required IconData icon,
+        required String title,
+        bool showChevron = false,
+        Color? iconColor,
+        VoidCallback? onTap,
+      }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
           children: [
-            const Icon(Icons.calendar_today, color: Colors.white),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            Icon(icon, color: iconColor ?? Theme.of(context).primaryColor),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ),
-            const Text(
-              'Book now!',
-              style: TextStyle(color: Colors.white),
-            )
+            if (showChevron)
+              const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),
-    );
-  }
-}
-
-class SummaryColumn extends StatelessWidget {
-  final String title;
-  final String value;
-
-  const SummaryColumn({super.key, required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(title),
-      ],
     );
   }
 }

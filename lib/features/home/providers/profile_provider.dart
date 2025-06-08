@@ -13,22 +13,35 @@ final profileProvider = StateNotifierProvider<ProfileNotifier, ProfileState>((re
 
 class ProfileState {
   final String? name;
+  final String? dateOfBirth;
   final bool isLoading;
   final String? error;
+  final String? email;
+  final bool notificationsEnabled;
+
 
   ProfileState({
     this.name,
+    this.dateOfBirth,
     this.isLoading = false,
+    this.email,
+    this.notificationsEnabled = true,
     this.error,
   });
 
   ProfileState copyWith({
     String? name,
+    String? dateOfBirth,
+    String? email,
+    bool? notificationsEnabled,
     bool? isLoading,
     String? error,
   }) {
     return ProfileState(
       name: name ?? this.name,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      email: email ?? this.email,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
     );
@@ -40,14 +53,43 @@ class ProfileService {
   final ApiClient _apiClient;
 
   ProfileService(this._sessionManager, this._apiClient);
+  Future<void> logout() async {
+    await _sessionManager.clearSession();
+  }
 
-  Future<String?> fetchProfile() async {
+  Future<void> changeEmail(String newEmail) async {
+    await _apiClient.post('/profile/change-email', data: {
+      'email': newEmail,
+    });
+  }
+
+  Future<void> updateNotificationSetting(bool enabled) async {
+    await _apiClient.post('/profile/notification-settings', data: {
+      'enabled': enabled,
+    });
+  }
+
+  Future<void> deleteProfile() async {
     final userId = await _sessionManager.getUserId();
     if (userId == null) throw Exception('User not logged in');
-    
-    final response = await _apiClient.get('/profile/me');
-    return response.data['name'] ?? '';
+    await _apiClient.delete('/profile/$userId');
+    await _sessionManager.clearSession();
   }
+
+
+  Future<Map<String, dynamic>> fetchProfile() async {
+    final userId = await _sessionManager.getUserId();
+    if (userId == null) throw Exception('User not logged in');
+
+    final response = await _apiClient.get('/profile/me');
+    return {
+      'name': response.data['name'] ?? '',
+      'dateOfBirth': response.data['dateOfBirth'] ?? '',
+      'email': response.data['email'] ?? '',
+      'notificationsEnabled': response.data['notificationsEnabled'] ?? true,
+    };
+  }
+
 
   Future<void> createProfile({
     required String name,
@@ -78,13 +120,52 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
 
   ProfileNotifier(this._service) : super(ProfileState());
 
+  Future<void> logout() async {
+    await _service.logout();
+    state = ProfileState(); // reset state after logout
+  }
+
+  Future<void> changeEmail(String newEmail) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _service.changeEmail(newEmail);
+      state = state.copyWith(isLoading: false, email: newEmail);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> toggleNotificationSetting(bool enabled) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _service.updateNotificationSetting(enabled);
+      state = state.copyWith(isLoading: false, notificationsEnabled: enabled);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> deleteProfile() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _service.deleteProfile();
+      state = ProfileState(); // reset state after deletion
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+
   Future<void> fetchProfile() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final name = await _service.fetchProfile();
+      final profileData = await _service.fetchProfile();
       state = state.copyWith(
         isLoading: false,
-        name: name,
+        name: profileData['name'],
+        dateOfBirth: profileData['dateOfBirth'],
+        email: profileData['email'],
+        notificationsEnabled: profileData['notificationsEnabled'],
       );
     } catch (e) {
       state = state.copyWith(
@@ -93,6 +174,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       );
     }
   }
+
 
   Future<void> createProfile({
   required String name,
