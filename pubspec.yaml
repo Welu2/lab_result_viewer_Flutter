@@ -64,6 +64,8 @@ dependencies:
   permission_handler: ^11.3.0
   base64: ^1.0.0
 
+  jwt_decoder: ^2.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

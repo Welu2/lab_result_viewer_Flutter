@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/appointment.dart';
 import '../notifiers/appointment_notifier.dart';
 
-class AppointmentsScreen extends ConsumerStatefulWidget {
-  const AppointmentsScreen({Key? key}) : super(key: key);
+class UserAppointmentsScreen extends ConsumerStatefulWidget {
+  const UserAppointmentsScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
+  ConsumerState<UserAppointmentsScreen> createState() => _UserAppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
+class _UserAppointmentsScreenState extends ConsumerState<UserAppointmentsScreen> {
   String _sortBy = 'date';
 
   @override

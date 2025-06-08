@@ -9,6 +9,7 @@ import 'features/auth/services/auth_service.dart';
 import 'features/home/providers/profile_provider.dart';
 import 'features/notifications/providers/notification_provider.dart';
 import 'features/home/providers/health_summary_provider.dart';
+import 'features/home/services/profile_service.dart';
 import 'features/lab_results/providers/lab_results_provider.dart';
 import 'features/lab_results/services/lab_results_service.dart';
 import 'features/notifications/services/notification_service.dart'

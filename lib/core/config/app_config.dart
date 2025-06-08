@@ -1,6 +1,6 @@
 class AppConfig {
   static const String appName = 'Lab Result Viewer';
-  static const String apiBaseUrl = 'http://192.168.88.190:3001';
+  static const String apiBaseUrl = 'http://192.168.100.7:3001';
 
   // API Endpoints
   static const String loginEndpoint = '/auth/login';

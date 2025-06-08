@@ -12,9 +12,11 @@ import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/create_profile_screen.dart';
 import '../../features/home/screens/main_layout.dart';
 import '../../features/home/screens/user_profile_screen.dart';
+import '../../features/home/screens/home_screen.dart';
 import '../../features/lab_results/screens/lab_results_screen.dart';
 import '../../features/auth/screens/success_screen.dart';
 import '../../features/notifications/screens/notification_screen.dart';
+import '../../features/appointments_user/screens/appointments_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -45,9 +47,7 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/home',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Home Screen - Coming Soon')),
-            ),
+            builder: (context, state) => const HomeScreen(),
           ),
           GoRoute(
             path: '/lab-results',
@@ -57,11 +57,15 @@ class AppRouter {
             path: '/profile',
             builder: (context, state) => const UserProfileScreen(),
           ),
+          GoRoute(
+            path: '/appointments',
+            builder: (context, state) => const UserAppointmentsScreen(),
+          ),
         ],
       ),
       GoRoute(
         path: '/admin-dashboard',
-       builder: (context, state) => const DashboardScreen(),
+        builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
         path: '/appointments-approval',
@@ -79,7 +83,7 @@ class AppRouter {
         path: '/setting',
         builder: (context, state) => const AdminSettingsScreen(),
       ),
-        GoRoute(
+      GoRoute(
         path: '/admin-appt',
         builder: (context, state) => const AppointmentsScreen(),
       ),

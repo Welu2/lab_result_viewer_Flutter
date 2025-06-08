@@ -6,6 +6,7 @@ import 'home_screen.dart';
 import 'user_profile_screen.dart';
 import '../providers/profile_provider.dart';
 import '../../lab_results/screens/lab_results_screen.dart';
+import '../../appointments_user/screens/appointments_screen.dart';
 
 class MainLayout extends ConsumerStatefulWidget {
   const MainLayout({super.key});
@@ -17,17 +18,25 @@ class MainLayout extends ConsumerStatefulWidget {
 class _MainLayoutState extends ConsumerState<MainLayout> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const Center(child: Text('Appts.')),
-    const LabResultsScreen(),
-    const UserProfileScreen(), // TODO: Replace with ProfileScreen
-  ];
-
   void _onNavTap(int index) {
     setState(() {
       _currentIndex = index;
     });
+    
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/appointments');
+        break;
+      case 2:
+        context.go('/lab-results');
+        break;
+      case 3:
+        context.go('/profile');
+        break;
+    }
   }
 
   @override
@@ -35,7 +44,15 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     final profileState = ref.watch(profileProvider);
     print('Current user in MainLayout: ${profileState.name}');
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: const [
+          HomeScreen(),
+          UserAppointmentsScreen(),
+          LabResultsScreen(),
+          UserProfileScreen(),
+        ],
+      ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,

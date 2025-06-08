@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/auth/session_manager.dart';
 import '../models/auth_models.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 //import '../models/create_profile_request.dart';
 
 class AuthService {
@@ -16,6 +17,19 @@ class AuthService {
     
     final loginResponse = LoginResponse.fromJson(response.data);
     await _sessionManager.saveToken(loginResponse.token.accessToken);
+    
+    // Decode JWT token to get role
+    final decodedToken = JwtDecoder.decode(loginResponse.token.accessToken);
+    final role = decodedToken['role'] as String;
+    final userId = decodedToken['sub'] as int;
+    
+    // Save complete session
+    await _sessionManager.saveSession(
+      token: loginResponse.token.accessToken,
+      role: role,
+      userId: userId,
+      email: email,
+    );
     
     return loginResponse;
   }

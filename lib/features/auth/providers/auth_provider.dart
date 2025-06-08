@@ -45,12 +45,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await _authService.login(email, password);
       
-      // After successful login and token saving, fetch the user's profile
-      final profile = await _authService.getProfile();
-
+      // Get role from session manager
+      final role = await _authService.getUserRole();
       state = state.copyWith(
         isLoading: false,
-        userRole: profile.user.role,
+        userRole: role,
       );
       return true;
     } catch (e) {

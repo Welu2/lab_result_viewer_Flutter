@@ -43,9 +43,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (userRole == 'admin') {
           context.go('/admin-dashboard');
         } else {
-          // Check if profile exists via ProfileProvider
-          final hasProfile =
-              await ref.read(authProvider.notifier).checkAuthStatus();
+          // Only check profile for regular users
+          final hasProfile = await ref.read(authProvider.notifier).checkAuthStatus();
           if (hasProfile) {
             await ref.read(profileProvider.notifier).fetchProfile();
             context.go('/home');

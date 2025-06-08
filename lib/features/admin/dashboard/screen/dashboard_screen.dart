@@ -100,105 +100,111 @@ final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Welcome back, Admin',
-                style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: StatCard(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Welcome back, Admin',
+                  style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 16),
+              // Stats Grid
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.5,
+                children: [
+                  StatCard(
                     icon: Icons.calendar_today,
                     label: 'Appointments',
                     value: stats.totalAppointments.toString(),
                     badge: 'Today',
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: StatCard(
+                  StatCard(
                     icon: Icons.group,
                     label: 'Total Patients',
                     value: stats.totalPatients.toString(),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            StatCard(
-              icon: Icons.check_circle,
-              label: 'Total Lab Results',
-              value: stats.totalLabResults.toString(),
-            ),
-            const SizedBox(height: 24),
-            const Text('Upcoming Appointments',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 8),
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: upcomingAppointments == null ||
-                        upcomingAppointments.isEmpty
-                    ? const Text("No upcoming appointments")
-                    : Column(
-                        children: [
-                          ...upcomingAppointments.map(
-                            (appt) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 70,
-                                    height: 70,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0xFFE3EAFE),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      appt.time,
-                                      style: const TextStyle(
-                                        color: Color(0xFF3B5BDB),
-                                        fontWeight: FontWeight.bold,
+                  StatCard(
+                    icon: Icons.check_circle,
+                    label: 'Total Lab Results',
+                    value: stats.totalLabResults.toString(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Text('Upcoming Appointments',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 8),
+              Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: upcomingAppointments == null ||
+                          upcomingAppointments.isEmpty
+                      ? const Text("No upcoming appointments")
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ...upcomingAppointments.map(
+                              (appt) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 70,
+                                      height: 70,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFFE3EAFE),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        appt.time,
+                                        style: const TextStyle(
+                                          color: Color(0xFF3B5BDB),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(appt.patientName,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold)),
-                                      Text(appt.testType,
-                                          style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 13)),
-                                    ],
-                                  )
-                                ],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(appt.patientName,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          Text(appt.testType,
+                                              style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 13)),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          TextButton(
-                            onPressed: () => context.go('/admin-appt'),
-                            child: const Text(
-                              "View All Appointments",
-                              style: TextStyle(color: Color(0xFF3B5BDB)),
+                            TextButton(
+                              onPressed: () => context.go('/admin-appt'),
+                              child: const Text(
+                                "View All Appointments",
+                                style: TextStyle(color: Color(0xFF3B5BDB)),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: MainBottomNavigation(
