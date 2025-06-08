@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/bottom_nav_bar.dart';
 import 'home_screen.dart';
+import 'user_profile_screen.dart';
 import '../providers/profile_provider.dart';
 import '../../lab_results/screens/lab_results_screen.dart';
 
@@ -20,7 +21,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     const HomeScreen(),
     const Center(child: Text('Appts.')),
     const LabResultsScreen(),
-    const Center(child: Text('Profile')), // TODO: Replace with ProfileScreen
+    const UserProfileScreen(), // TODO: Replace with ProfileScreen
   ];
 
   void _onNavTap(int index) {
