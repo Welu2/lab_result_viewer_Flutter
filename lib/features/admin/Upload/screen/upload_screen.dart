@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 import '../provider/notify.dart';
 
 class UploadLabReportScreen extends ConsumerStatefulWidget {
@@ -73,7 +73,15 @@ class _UploadLabReportScreenState extends ConsumerState<UploadLabReportScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Upload Lab Report")),
+      appBar: AppBar(
+        title: const Text("Upload Lab Report"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/admin-upload'); // Navigates to /upload using GoRouter
+          },
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),

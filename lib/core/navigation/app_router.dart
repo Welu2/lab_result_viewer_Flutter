@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lab_result_viewer/features/admin/Approval/screen/approval_screen.dart';
 import 'package:lab_result_viewer/features/admin/Setting/screen/setting_screen.dart';
+import 'package:lab_result_viewer/features/admin/Upload/screen/lab_screen.dart';
 import 'package:lab_result_viewer/features/admin/Upload/screen/upload_screen.dart';
 import 'package:lab_result_viewer/features/admin/appointment/screen/appt.dart';
 import 'package:lab_result_viewer/features/admin/dashboard/screen/dashboard_screen.dart';
@@ -68,8 +69,12 @@ class AppRouter {
         builder: (context, state) => AppointmentsApprovalScreen(),
       ),
       GoRoute(
-        path: '/admin-upload',
+        path: '/upload',
         builder: (context, state) => const UploadLabReportScreen(),
+      ),
+      GoRoute(
+        path: '/admin-upload',
+        builder: (context, state) => const LabResultListScreen(),
       ),
       GoRoute(
         path: '/setting',

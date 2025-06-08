@@ -21,6 +21,8 @@ import 'features/admin/appointment/provider/appt_provider.dart';
 import 'features/admin/appointment/service/appt_service.dart';
 import "features/admin/Upload/provider/upload_provider.dart";
 import 'features/admin/Upload/service/upload_service.dart';
+import 'features/admin/Upload/provider/lab_result_providers.dart';
+import 'features/admin/Upload/service/lab_result_service.dart';
 import 'package:dio/dio.dart';
 
 void main() {
@@ -37,6 +39,7 @@ void main() {
   final appointmentService = AppointmentsService(apiClient);
   final appts = AppointmentService(apiClient);
   final report = LabReportService(apiClient);
+  final lab = LabService(apiClient);
 
   runApp(
     ProviderScope(
@@ -50,6 +53,7 @@ void main() {
         appointmentsServiceProvider.overrideWithValue(appointmentService),
         appointmentServiceProvider.overrideWithValue(appts),
         labReportServiceProvider.overrideWithValue(report),
+        labServiceProvider.overrideWithValue(lab),
       ],
       child: const MyApp(),
     ),
