@@ -17,7 +17,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _obscurePassword = true;
 
   @override
@@ -29,19 +28,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      final success = await ref.read(authProvider.notifier).login(
-        _emailController.text,
-        _passwordController.text,
+      final authNotifier = ref.read(authProvider.notifier);
+      final success = await authNotifier.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
 
-      if (success && mounted) {
-        // Check if user has a profile
-        final hasProfile = await ref.read(authProvider.notifier).checkAuthStatus();
-        if (hasProfile) {
-          await ref.read(profileProvider.notifier).fetchProfile();
-          context.go('/home');
+      if (!mounted) return;
+
+      if (success) {
+        final userRole = ref.read(authProvider).userRole;
+
+        if (userRole == 'admin') {
+          context.go('/admin-dashboard');
         } else {
-          context.go('/create-profile');
+          // Check if profile exists via ProfileProvider
+          final hasProfile =
+              await ref.read(authProvider.notifier).checkAuthStatus();
+          if (hasProfile) {
+            await ref.read(profileProvider.notifier).fetchProfile();
+            context.go('/home');
+          } else {
+            context.go('/create-profile');
+          }
         }
       }
     }
@@ -69,16 +78,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(
                   'Welcome Back!',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Log in to continue',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
                 ),
                 const SizedBox(height: 32),
                 CustomTextField(
@@ -102,7 +111,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   obscureText: _obscurePassword,
                   suffix: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -140,10 +151,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?", style: TextStyle(fontSize: 13),),
+                    const Text(
+                      "Don't have an account?",
+                      style: TextStyle(fontSize: 13),
+                    ),
                     TextButton(
                       onPressed: () => context.go('/register'),
-                      child: const Text('Create an account', style: TextStyle(fontSize: 13),),
+                      child: const Text(
+                        'Create an account',
+                        style: TextStyle(fontSize: 13),
+                      ),
                     ),
                   ],
                 ),
@@ -154,4 +171,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-} 
+}

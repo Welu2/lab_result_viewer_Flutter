@@ -29,7 +29,7 @@ class LabResult {
     reportDate: json['reportDate'],
     reportType: json['reportType'],
     status: json['status'],
-    downloadUrl: json['downloadUrl'] ?? 'http://192.168.100.7:3001/lab-results/download/$parsedId',
+    downloadUrl: json['downloadUrl'] ?? 'http://192.168.1.12:3001/lab-results/download/$parsedId',
   );
 }
 

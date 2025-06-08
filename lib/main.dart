@@ -11,7 +11,16 @@ import 'features/notifications/providers/notification_provider.dart';
 import 'features/home/providers/health_summary_provider.dart';
 import 'features/lab_results/providers/lab_results_provider.dart';
 import 'features/lab_results/services/lab_results_service.dart';
-import 'features/notifications/services/notification_service.dart' as notif_service;
+import 'features/notifications/services/notification_service.dart'
+    as notif_service;
+import 'features/admin/dashboard/provider/dashboard_provider.dart';
+import "features/admin/dashboard/service/dashboard_service.dart";
+import 'features/admin/Approval/provider/approval_provider.dart';
+import "features/admin/Approval/services/approval_service.dart";
+import 'features/admin/appointment/provider/appt_provider.dart';
+import 'features/admin/appointment/service/appt_service.dart';
+import "features/admin/Upload/provider/upload_provider.dart";
+import 'features/admin/Upload/service/upload_service.dart';
 import 'package:dio/dio.dart';
 
 void main() {
@@ -24,6 +33,10 @@ void main() {
   final notificationService = notif_service.NotificationService(apiClient.dio);
   final healthSummaryService = HealthSummaryService(apiClient);
   final labResultsService = LabResultsService(apiClient);
+  final dashboardService = DashboardService(apiClient);
+  final appointmentService = AppointmentsService(apiClient);
+  final appts = AppointmentService(apiClient);
+  final report = LabReportService(apiClient);
 
   runApp(
     ProviderScope(
@@ -33,6 +46,10 @@ void main() {
         notificationServiceProvider.overrideWithValue(notificationService),
         healthSummaryServiceProvider.overrideWithValue(healthSummaryService),
         labResultsServiceProvider.overrideWithValue(labResultsService),
+        dashboardServiceProvider.overrideWithValue(dashboardService),
+        appointmentsServiceProvider.overrideWithValue(appointmentService),
+        appointmentServiceProvider.overrideWithValue(appts),
+        labReportServiceProvider.overrideWithValue(report),
       ],
       child: const MyApp(),
     ),
