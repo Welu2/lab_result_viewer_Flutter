@@ -142,10 +142,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-                CustomButton(
-                  text: 'Log In',
-                  onPressed: authState.isLoading ? () {} : () => _handleLogin(),
-                  isLoading: authState.isLoading,
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomButton(
+                    text: 'Log In',
+                    onPressed: authState.isLoading ? () {} : () => _handleLogin(),
+                    isLoading: authState.isLoading,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(

@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.1.12:3001'; // Update with your NestJS backend URL
+  static const String baseUrl =
+      'http://192.168.56.1:3000'; // Update with your NestJS backend URL
   late final Dio _dio;
   final _storage = const FlutterSecureStorage();
   Dio get dio => _dio;
@@ -11,7 +12,7 @@ class ApiClient {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
+      receiveTimeout: const Duration(seconds: 5),
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(
@@ -32,7 +33,8 @@ class ApiClient {
     ));
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<Response> get(String path,
+      {Map<String, dynamic>? queryParameters}) async {
     try {
       return await _dio.get(path, queryParameters: queryParameters);
     } on DioException catch (e) {
@@ -78,4 +80,4 @@ class ApiClient {
     }
     return Exception(e.message ?? 'An error occurred');
   }
-} 
+}
