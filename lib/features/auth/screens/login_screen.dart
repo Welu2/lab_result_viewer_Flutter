@@ -18,6 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -76,27 +77,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      const SizedBox(height: 16),
                       Text(
-                        'Welcome Back!',
+                        'Log in',
+                        textAlign: TextAlign.left,
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          fontSize: 28,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Log in to continue',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey,
-                          fontSize: 12,
+                        'Welcome Back!',
+                        textAlign: TextAlign.left,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.grey[700],
+                          fontSize: 18,
                         ),
                       ),
                       const SizedBox(height: 32),
+                      const Text(
+                        'Email',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       CustomTextField(
-                        label: 'Email',
+                        label: '',
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        hint: 'Enter your email',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
@@ -108,10 +122,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
+                      const Text(
+                        'Password',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       CustomTextField(
-                        label: 'Password',
+                        label: '',
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        hint: 'Create Password',
                         suffix: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -132,7 +155,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              // TODO: Implement forgot password navigation
+                            },
+                            child: const Text('Forgot Password?'),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            onChanged: (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                          ),
+                          const Text('Remember me'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       if (authState.error != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -146,7 +194,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          text: 'Log In',
+                          text: 'Log in',
                           onPressed: authState.isLoading ? () {} : () => _handleLogin(),
                           isLoading: authState.isLoading,
                         ),
@@ -161,10 +209,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account?", style: TextStyle(fontSize: 13),),
-                  TextButton(
-                    onPressed: () => context.go('/register'),
-                    child: const Text('Create an account', style: TextStyle(fontSize: 13),),
+                  const Text('Are you new here? '),
+                  GestureDetector(
+                    onTap: () => context.go('/register'),
+                    child: const Text(
+                      'Create an account',
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
