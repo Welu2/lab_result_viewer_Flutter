@@ -3,6 +3,9 @@ import '../../../core/auth/session_manager.dart';
 import '../../../core/api/api_client.dart';
 
 final profileServiceProvider = Provider<ProfileService>((ref) {
+  final sessionManager = SessionManager();
+  final apiClient = ApiClient();
+  return ProfileService(sessionManager, apiClient);
   throw UnimplementedError('ProfileService must be provided');
 });
 
