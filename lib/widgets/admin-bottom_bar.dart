@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import "../core/theme/app_theme.dart";
 
 class MainBottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -13,7 +14,7 @@ class MainBottomNavigation extends StatelessWidget {
   static const _tabs = [
     {'label': 'Home', 'icon': Icons.home},
     {'label': 'Patient', 'icon': Icons.people},
-    {'label': 'Upload', 'icon': Icons.h_plus_mobiledata_rounded},
+    {'label': 'Upload', 'icon': Icons.add},
     {'label': 'Appts', 'icon': Icons.calendar_today},
     {'label': 'Settings', 'icon': Icons.settings},
   ];
@@ -23,7 +24,7 @@ class MainBottomNavigation extends StatelessWidget {
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap, // ✅ Make sure this matches the parameter!
-      selectedItemColor: Colors.green.shade600,
+      selectedItemColor: AppTheme.primaryColor,
       unselectedItemColor: Colors.grey,
       type: BottomNavigationBarType.fixed,
       items: _tabs
