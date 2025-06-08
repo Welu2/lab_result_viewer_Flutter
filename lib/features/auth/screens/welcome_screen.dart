@@ -20,7 +20,7 @@ class WelcomeScreen extends ConsumerWidget {
                 children: [
                   Image.asset(
                     'images/logo.png',
-                    height: 250,
+                    height: 300,
                   ),
                   const SizedBox(height: 16),
                   Text(
