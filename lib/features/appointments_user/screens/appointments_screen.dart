@@ -57,7 +57,10 @@ class _UserAppointmentsScreenState extends ConsumerState<UserAppointmentsScreen>
     return Row(
       children: [
         PopupMenuButton<String>(
-          icon: const Icon(Icons.sort),
+          icon: Icon(
+          Icons.sort,
+          color: Theme.of(context).colorScheme.primary,
+        ),
           onSelected: (val) => setState(() => _sortBy = val),
           itemBuilder: (_) => const [
             PopupMenuItem(value: 'name', child: Text('By Name')),
@@ -118,7 +121,8 @@ class _UserAppointmentsScreenState extends ConsumerState<UserAppointmentsScreen>
                   onTap: () => _showScheduleDialog(isReschedule: true, appointment: appt),
                   child: Text(
                     'Reschedule',
-                    style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: Theme.of(context).colorScheme.primary
+, fontWeight: FontWeight.w600),
                   ),
                 ),
                 const SizedBox(width: 24),
@@ -209,7 +213,7 @@ class _UserAppointmentsScreenState extends ConsumerState<UserAppointmentsScreen>
                     label: Text(slot),
                     selected: selectedTime == slot,
                     onSelected: (_) => setState(() => selectedTime = slot),
-                    selectedColor: Theme.of(context).primaryColor,
+                    selectedColor: Theme.of(context).colorScheme.primary,
                     labelStyle: TextStyle(color: selectedTime == slot ? Colors.white : null),
                   )).toList(),
                 ),

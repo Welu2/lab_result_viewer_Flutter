@@ -6,26 +6,45 @@ class AppTheme {
 
   static ThemeData get lightTheme {
     return ThemeData(
-      useMaterial3: true,
-      scaffoldBackgroundColor: backgroundColor,
-      colorScheme: ColorScheme.light(
-        primary: primaryColor,
-        secondary: primaryColor,
-        surface: backgroundColor,
-        background: backgroundColor,
-        error: Colors.red,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: Colors.black,
-        onBackground: Colors.black,
-        onError: Colors.white,
-      ),
-      appBarTheme: const AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: backgroundColor,
-        foregroundColor: primaryColor,
-      ),
+    useMaterial3: true,
+    scaffoldBackgroundColor: backgroundColor,
+    primaryColor: primaryColor,
+    iconTheme: const IconThemeData(
+      color: primaryColor,
+    ),
+
+    // give your Text(… color: Theme.of(context).primaryColor) something to grab
+    colorScheme: ColorScheme.light(
+      primary: primaryColor,
+      secondary: primaryColor,
+      surface: backgroundColor,
+      background: backgroundColor,
+      error: Colors.red,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onSurface: Colors.black,
+      onBackground: Colors.black,
+      onError: Colors.white,
+    ),
+
+    // ChoiceChip theming
+    chipTheme: ChipThemeData.fromDefaults(
+      secondaryColor: primaryColor,
+      labelStyle: const TextStyle(color: Colors.white),
+      brightness: Brightness.light,
+    ).copyWith(
+      selectedColor: primaryColor,
+      backgroundColor: Colors.grey.shade200,
+      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ),
+
+    // PopupMenuButton theming
+    popupMenuTheme: const PopupMenuThemeData(
+      color: Colors.white,
+      textStyle: TextStyle(color: primaryColor),
+      iconColor: primaryColor,
+    ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
