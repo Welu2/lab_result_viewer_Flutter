@@ -7,6 +7,7 @@ import '../services/profile_service.dart';
 class ProfileState {
   final bool isLoading;
   final String? error;
+  final String? id;
   final String? name;
   final String? email;
   final String? dateOfBirth;
@@ -21,6 +22,7 @@ class ProfileState {
   ProfileState({
     this.isLoading = false,
     this.error,
+    this.id,
     this.name,
     this.email,
     this.dateOfBirth,
@@ -36,6 +38,7 @@ class ProfileState {
   ProfileState copyWith({
     bool? isLoading,
     String? error,
+    String? id,
     String? name,
     String? email,
     String? dateOfBirth,
@@ -50,6 +53,7 @@ class ProfileState {
     return ProfileState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
@@ -69,8 +73,9 @@ class ProfileState {
 // Define the profile notifier
 class ProfileNotifier extends StateNotifier<ProfileState> {
   final ProfileService _profileService;
+  final SessionManager _sessionManager;
 
-  ProfileNotifier(this._profileService) : super(ProfileState()) {
+  ProfileNotifier(this._profileService, this._sessionManager) : super(ProfileState()) {
     _initializeRole();
   }
 
@@ -91,6 +96,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final data = await _profileService.getProfile();
       state = state.copyWith(
         isLoading: false,
+        id: data['id']?.toString(),
         name: data['name'],
         email: data['email'],
         dateOfBirth: data['dateOfBirth'],
@@ -133,12 +139,16 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     }
   }
 
-  Future<void> deleteProfile() async {
+  Future<bool> deleteProfile(String profileId) async {
     try {
-      await _profileService.deleteProfile();
-      state = ProfileState();
+      final success = await _profileService.deleteProfile(profileId);
+      if (success) {
+        await _sessionManager.clearSession();
+      }
+      return success;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      print('Error in deleteProfile: $e');
+      return false;
     }
   }
 }
@@ -150,7 +160,8 @@ final profileServiceProvider = Provider<ProfileService>((ref) {
 
 final profileProvider = StateNotifierProvider<ProfileNotifier, ProfileState>((ref) {
   final profileService = ref.watch(profileServiceProvider);
-  return ProfileNotifier(profileService);
+  final sessionManager = ref.watch(sessionManagerProvider);
+  return ProfileNotifier(profileService, sessionManager);
 });
 
 // Providers for dependencies

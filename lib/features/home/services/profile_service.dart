@@ -35,16 +35,31 @@ class ProfileService {
   }
 
   Future<void> changeEmail(String newEmail) async {
-    await _apiClient.put('/profile/email', data: {'email': newEmail});
+    await _apiClient.patch('/profile/update-email', data: {'email': newEmail});
   }
 
   Future<void> toggleNotifications(bool enabled) async {
     await _apiClient.put('/profile/notifications', data: {'enabled': enabled});
   }
 
-  Future<void> deleteProfile() async {
-    await _apiClient.delete('/profile/me');
-    await _sessionManager.clearSession();
+  Future<bool> deleteProfile(String profileId) async {
+    try {
+      // First, delete all notifications for this user
+      await _apiClient.delete('/notifications/user');
+      
+      // Then delete the profile
+      final profileResponse = await _apiClient.delete('/profile/$profileId');
+      if (profileResponse.statusCode != 200) {
+        return false;
+      }
+
+      // Finally, delete the user
+      final userResponse = await _apiClient.delete('/users/me');
+      return userResponse.statusCode == 200;
+    } catch (e) {
+      print('Error deleting profile and user: $e');
+      return false;
+    }
   }
 
   Future<void> logout() async {

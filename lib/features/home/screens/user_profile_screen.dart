@@ -68,108 +68,136 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Header with Avatar and Name
-              Center(
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.blue.shade100,
-                      child: Text(
-                        profile.name?.substring(0, 1).toUpperCase() ?? 'H',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+              // Profile Header Card
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      // Profile Image
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        child: Text(
+                          profile.name?.substring(0, 1).toUpperCase() ?? 'A',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      profile.name ?? 'No name',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: 16),
+                      // Name and Date of Birth
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile.name ?? 'No name',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              profile.dateOfBirth ?? 'Date of birth not set',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      profile.dateOfBirth ?? 'Date of birth not set',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      profile.email ?? 'Email not available',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
+                      // Chevron Icon
+                      const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
                 ),
               ),
 
               const SizedBox(height: 32),
 
               // === Profile Actions ===
-              _buildProfileAction(
-                context,
-                icon: Icons.email,
-                title: 'Change Email',
-                showChevron: true,
+              InkWell(
                 onTap: () => _showChangeEmailDialog(context, profileNotifier),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  children: [
-                    Icon(Icons.notifications,
-                        color: Theme.of(context).primaryColor),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        'Notification Setting',
-                        style: Theme.of(context).textTheme.bodyLarge,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.mail_outline, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Change Email',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                       ),
-                    ),
-                    Switch(
-                      value: profile.notificationsEnabled,
-                      onChanged: (value) async {
-                        await profileNotifier.toggleNotificationSetting(value);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Notifications ${value ? 'enabled' : 'disabled'}'),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
+                      const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
                 ),
               ),
+              const Divider(),
 
-              _buildProfileAction(
-                context,
-                icon: Icons.logout,
-                title: 'Log Out',
-                showChevron: false,
-                onTap: () => _confirmLogout(context, profileNotifier),
+              InkWell(
+                onTap: () => context.go('/notifications'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.notifications_none, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Notification Setting',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
+                ),
               ),
+              const Divider(),
 
-              const Divider(height: 40),
+              InkWell(
+                onTap: () => _confirmLogout(context, profileNotifier),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Log out',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Divider(),
 
-              Center(
-                child: TextButton(
-                  onPressed: () => _confirmDeleteProfile(context, profileNotifier),
-                  child: const Text(
-                    'Delete Profile',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
+              InkWell(
+                onTap: () => _confirmDeleteProfile(context, profileNotifier),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_outline, color: Colors.red),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Delete Profile',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -251,59 +279,93 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
   Future<void> _confirmDeleteProfile(
       BuildContext context, ProfileNotifier notifier) async {
+    final profile = ref.read(profileProvider);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text(
-            'Are you sure you want to delete your profile? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await notifier.deleteProfile();
-      if (context.mounted) {
-        context.go('/login');
-      }
-    }
-  }
-
-  Widget _buildProfileAction(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        bool showChevron = false,
-        Color? iconColor,
-        VoidCallback? onTap,
-      }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: iconColor ?? Theme.of(context).primaryColor),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.bodyLarge,
+            // Warning Icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                color: Colors.red,
+                size: 32,
               ),
             ),
-            if (showChevron) const Icon(Icons.chevron_right, color: Colors.grey),
+            const SizedBox(height: 16),
+            // Warning Text
+            Text(
+              'Are you sure you want to delete your account?',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            // Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context, true);
+                    if (profile.id != null) {
+                      final success = await notifier.deleteProfile(profile.id!);
+                      if (success && context.mounted) {
+                        context.go('/login');
+                      } else if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to delete profile. Please try again.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } else {
+                      print('Error: Profile ID is null. Cannot delete profile.');
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Error: Profile ID is missing'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: const Text(
+                    'Delete Account',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
           ],
         ),
       ),
