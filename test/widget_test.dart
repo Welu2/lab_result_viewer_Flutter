@@ -1,30 +1,94 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:lrv/main.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lab_result_viewer/core/auth/session_manager.dart';
+import 'package:lab_result_viewer/core/api/api_client.dart';
+import 'package:lab_result_viewer/features/home/screens/user_profile_screen.dart';
+import 'package:lab_result_viewer/features/home/providers/profile_provider.dart';
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('UserProfileScreen Tests', () {
+    late ProfileService mockService;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    setUp(() {
+      mockService = ProfileService(FakeSessionManager(), FakeApiClient());
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    testWidgets('displays loading indicator when loading', (tester) async {
+      final notifier = ProfileNotifier(mockService);
+      notifier.state = ProfileState(isLoading: true);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileServiceProvider.overrideWithValue(mockService),
+            profileProvider.overrideWith((ref) => notifier),
+          ],
+          child: const MaterialApp(home: UserProfileScreen()),
+        ),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('displays user name when loaded', (tester) async {
+      final notifier = ProfileNotifier(mockService);
+      notifier.state = ProfileState(name: 'John Doe');
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileServiceProvider.overrideWithValue(mockService),
+            profileProvider.overrideWith((ref) => notifier),
+          ],
+          child: const MaterialApp(home: UserProfileScreen()),
+        ),
+      );
+
+      expect(find.text('John Doe'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('J'), findsWidgets);
+    });
+
+    testWidgets('displays error message and retry button', (tester) async {
+      final notifier = ProfileNotifier(mockService);
+      notifier.state = ProfileState(error: 'Failed to load');
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileServiceProvider.overrideWithValue(mockService),
+            profileProvider.overrideWith((ref) => notifier),
+          ],
+          child: const MaterialApp(home: UserProfileScreen()),
+        ),
+      );
+
+      expect(find.text('Error: Failed to load'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
   });
+}
+class FakeApiClient extends ApiClient {
+  @override
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+    return Response(
+      requestOptions: RequestOptions(path: path),
+      data: {'name': 'John Doe'},
+      statusCode: 200,
+    );
+  }
+
+  @override
+  Future<Response> post(String path, {dynamic data}) async {
+    return Response(
+      requestOptions: RequestOptions(path: path),
+      data: {'success': true},
+      statusCode: 201,
+    );
+  }
+}
+
+class FakeSessionManager extends SessionManager {
+  @override
+  Future<String?> getUserId() async => 'mock-user-id';
 }

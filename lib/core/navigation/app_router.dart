@@ -8,6 +8,8 @@ import '../../features/home/screens/main_layout.dart';
 import '../../features/lab_results/screens/lab_results_screen.dart';
 import '../../features/auth/screens/success_screen.dart';
 import '../../features/notifications/screens/notification_screen.dart';
+import '../../features/home/screens/user_profile_screen.dart';
+
 
 class AppRouter {
   static final router = GoRouter(
@@ -48,9 +50,7 @@ class AppRouter {
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Profile Screen - Coming Soon')),
-            ),
+            builder: (context, state) => const UserProfileScreen(),
           ),
         ],
       ),
