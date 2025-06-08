@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lab_result_viewer/features/admin/Approval/screen/approval_screen.dart';
+import 'package:lab_result_viewer/features/admin/Setting/screen/setting_screen.dart';
+import 'package:lab_result_viewer/features/admin/Upload/screen/lab_screen.dart';
+import 'package:lab_result_viewer/features/admin/Upload/screen/upload_screen.dart';
+import 'package:lab_result_viewer/features/admin/appointment/screen/appt.dart';
+import 'package:lab_result_viewer/features/admin/dashboard/screen/dashboard_screen.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
@@ -56,9 +62,27 @@ class AppRouter {
       ),
       GoRoute(
         path: '/admin-dashboard',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Admin Dashboard - Coming Soon')),
-        ),
+       builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/appointments-approval',
+        builder: (context, state) => AppointmentsApprovalScreen(),
+      ),
+      GoRoute(
+        path: '/upload',
+        builder: (context, state) => const UploadLabReportScreen(),
+      ),
+      GoRoute(
+        path: '/admin-upload',
+        builder: (context, state) => const LabResultListScreen(),
+      ),
+      GoRoute(
+        path: '/setting',
+        builder: (context, state) => const AdminSettingsScreen(),
+      ),
+        GoRoute(
+        path: '/admin-appt',
+        builder: (context, state) => const AppointmentsScreen(),
       ),
       GoRoute(
         path: '/notifications',

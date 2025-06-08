@@ -17,7 +17,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _obscurePassword = true;
 
   @override
@@ -29,19 +28,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      final success = await ref.read(authProvider.notifier).login(
-        _emailController.text,
-        _passwordController.text,
+      final authNotifier = ref.read(authProvider.notifier);
+      final success = await authNotifier.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
 
-      if (success && mounted) {
-        // Check if user has a profile
-        final hasProfile = await ref.read(authProvider.notifier).checkAuthStatus();
-        if (hasProfile) {
-          await ref.read(profileProvider.notifier).fetchProfile();
-          context.go('/home');
+      if (!mounted) return;
+
+      if (success) {
+        final userRole = ref.read(authProvider).userRole;
+
+        if (userRole == 'admin') {
+          context.go('/admin-dashboard');
         } else {
-          context.go('/create-profile');
+          // Check if profile exists via ProfileProvider
+          final hasProfile =
+              await ref.read(authProvider.notifier).checkAuthStatus();
+          if (hasProfile) {
+            await ref.read(profileProvider.notifier).fetchProfile();
+            context.go('/home');
+          } else {
+            context.go('/create-profile');
+          }
         }
       }
     }
@@ -165,4 +174,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-} 
+}
