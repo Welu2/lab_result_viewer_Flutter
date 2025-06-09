@@ -24,6 +24,9 @@ export class UsersService {
   async findById(patientId: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { patientId } });
   }
+  async save(user: User): Promise<User> {
+    return this.usersRepository.save(user);
+  }
 
   // Generate a unique patient ID like "PAT-00001"
   async generatePatientId(): Promise<string> {

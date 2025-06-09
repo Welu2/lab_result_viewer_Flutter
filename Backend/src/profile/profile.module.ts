@@ -1,5 +1,5 @@
 // profile.module.ts
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileService } from './profile.service';
 import { ProfileController } from './profile.controller';
@@ -11,10 +11,11 @@ import { UsersModule } from 'src/users/users.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Profile, User]),
-    AuthModule, 
+    forwardRef(() => AuthModule),
     UsersModule,
   ],
   controllers: [ProfileController],
   providers: [ProfileService],
+  exports: [ProfileService],
 })
 export class ProfileModule {}

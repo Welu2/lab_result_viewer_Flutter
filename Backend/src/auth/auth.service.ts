@@ -3,12 +3,16 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { Role } from '../users/user.entity';
+import { ProfileService } from '../profile/profile.service';
+
+import { RegisterUserDto } from './dto/register-dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private profileService: ProfileService,
   ) {}
 
   // Validate user credentials during login
@@ -19,26 +23,56 @@ export class AuthService {
       return null; // User not found, return null
     }
 
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
 
     if (isPasswordValid) {
       // Return the user excluding password
-        const userWithoutPassword = {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          patientId: user.patientId, // if exists
-        };
-    return userWithoutPassword;
-  }
-
-  return null;
+      const userWithoutPassword = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        patientId: user.patientId, // if exists
+      };
+      return userWithoutPassword;
     }
 
-    // Invalid password
+    return null;
+  }
 
+  // Invalid password
+  async registerWithProfile(data: RegisterUserDto) {
+    const { email, password, ...profileData } = data;
+
+    // 1. Check for existing user
+    const existingUser = await this.usersService.findByEmail(email);
+    if (existingUser) {
+      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+    }
+
+    // 2. Create user
+    const newUser = await this.usersService.createUser(email, password);
+
+    // 3. Assign patientId (if applicable)
+    newUser.patientId = newUser.patientId;
+
+    await this.usersService.save(newUser); // if UsersService has a save method
+
+    // 4. Create profile for user
+    const profile = await this.profileService.register(profileData, newUser);
+
+    // 5. Generate token
+    const payload = {
+      email: newUser.email,
+      sub: newUser.id,
+      role: newUser.role,
+    };
+
+    const token = {
+      access_token: this.jwtService.sign(payload),
+    };
+
+    return { user: newUser, profile, token };
+  }
 
   // Login method to generate JWT token
   async login(user: any) {
@@ -63,8 +97,6 @@ export class AuthService {
       );
     }
 
-
-
     // Create the user with the provided email and hashed password
     const newUser = await this.usersService.createUser(email, password);
 
@@ -78,10 +110,10 @@ export class AuthService {
     return {
       user: newUser,
       token: {
-        access_token: this.jwtService.sign(payload)
-      }
+        access_token: this.jwtService.sign(payload),
+      },
     };
-}
+  }
 
   // Delete user account by user ID
   async deleteAccount(patientId: string, currentUser: any) {

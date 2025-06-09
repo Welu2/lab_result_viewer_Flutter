@@ -29,6 +29,11 @@ export class ProfileController {
       user: req.user, // Attach the logged-in user to the profile
     });
   }
+  @Post()
+  async register(@Body() createProfileDto: CreateProfileDto, @Request() req) {
+    const user = req.user; // Get user from request (after JWT auth)
+    return this.profileService.register(createProfileDto, user); // create() should handle save internally
+  }
 
   @Get()
   async findAll(@Request() req) {
@@ -53,10 +58,7 @@ export class ProfileController {
   }
 
   @Patch('update-email')
-  async updateEmail(
-    @Body() updateEmailDto: UpdateEmailDto,
-    @Request() req,
-  ) {
+  async updateEmail(@Body() updateEmailDto: UpdateEmailDto, @Request() req) {
     return this.profileService.updateEmail(req.user.id, updateEmailDto);
   }
 

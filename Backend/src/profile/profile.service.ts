@@ -13,9 +13,21 @@ export class ProfileService {
   constructor(
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
   ) {}
+  async register(
+    createProfileDto: CreateProfileDto,
+    user: User,
+  ): Promise<Profile> {
+    const profile = this.profileRepository.create({
+      ...createProfileDto,
+      user,
 
+      patientId: user.patientId, // set patientId explicitly
+    });
+
+    return await this.profileRepository.save(profile);
+  }
   async create(data: CreateProfileDto & { user: User }) {
     const profile = this.profileRepository.create({
       ...data,
@@ -63,13 +75,13 @@ export class ProfileService {
   async remove(id: number) {
     const profile = await this.findOne(+id);
     const userId = profile.user.id;
-    
+
     // First remove the profile
     await this.profileRepository.remove(profile);
-    
+
     // Then remove the user
     await this.profileRepository.manager.getRepository(User).delete(userId);
-    
+
     return { message: 'Profile and user deleted successfully' };
   }
 
@@ -97,13 +109,13 @@ export class ProfileService {
       profile.user.patientId,
       profile.user,
       updateEmailDto.email,
-      updateEmailDto.password
+      updateEmailDto.password,
     );
-  
+
     if (!updatedUser) {
       throw new NotFoundException('Failed to update email');
     }
-  
+
     return this.findByUserId(userId);
   }
 }

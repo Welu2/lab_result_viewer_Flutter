@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module'; // Import UsersModule
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { ProfileModule } from 'src/profile/profile.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
       signOptions: { expiresIn: '1h' }, // Token expiry (optional)
     }),
     UsersModule, // Import UsersModule to provide UsersService
+    forwardRef(() => ProfileModule),
   ],
   providers: [AuthService, JwtAuthGuard], // Provide AuthService and JwtAuthGuard
   controllers: [AuthController],
