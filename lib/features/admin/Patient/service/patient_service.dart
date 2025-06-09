@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../model/auth_response.dart';
+
 import '../model/create_profile_request.dart';
 import '../model/patient_profile.dart';
 import '../../../../core/api/api_client.dart';

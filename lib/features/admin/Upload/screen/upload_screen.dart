@@ -2,6 +2,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../provider/lab_result_providers.dart';
+import '../../dashboard/provider/dashboard_provider.dart';
 import '../provider/notify.dart';
 
 class UploadLabReportScreen extends ConsumerStatefulWidget {
@@ -57,6 +59,8 @@ class _UploadLabReportScreenState extends ConsumerState<UploadLabReportScreen> {
       next.when(
         data: (message) {
           if (message.isNotEmpty) {
+            ref.invalidate(labResultsProvider);
+            ref.invalidate(dashboardProvider);
             showSnackBar(message);
             setState(() {
               selectedFile = null;

@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
   static const String baseUrl =
-      'http://192.168.100.7:3001'; // Update with your NestJS backend URL
+      'http://192.168.43.29:3001'; // Update with your NestJS backend URL
   late final Dio _dio;
   final _storage = const FlutterSecureStorage();
   Dio get dio => _dio;

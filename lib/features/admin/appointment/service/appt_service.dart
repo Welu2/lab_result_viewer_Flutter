@@ -7,7 +7,9 @@ class AppointmentService {
   AppointmentService(this.api);
 
   Future<List<Appointment>> getMyAppointments() async {
-    final response = await api.get('/appointments');
+   final response = await api.get('/appointments', queryParameters: {
+      'status': 'confirmed',
+    });
     final List data = response.data;
     return data.map((json) => Appointment.fromJson(json)).toList();
   }

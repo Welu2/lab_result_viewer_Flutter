@@ -6,8 +6,11 @@ import '../provider/patient_provider.dart';
 
 class EditProfileDialog extends ConsumerStatefulWidget {
   final PatientProfile profile;
+  final VoidCallback? onProfileUpdated;
 
-  const EditProfileDialog({Key? key, required this.profile}) : super(key: key);
+  const EditProfileDialog({Key? key, required this.profile,
+    this.onProfileUpdated,
+  }) : super(key: key);
 
   @override
   _EditProfileDialogState createState() => _EditProfileDialogState();
@@ -70,6 +73,7 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
       )).future);
 
       if (mounted) {
+        widget.onProfileUpdated?.call(); 
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated')),

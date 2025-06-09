@@ -8,6 +8,8 @@ import 'edit_profile_dialog.dart';
 import '../../../auth/providers/auth_provider.dart';
 import "../../../../widgets/admin-bottom_bar.dart";
 import 'package:go_router/go_router.dart';
+import '../../dashboard/provider/dashboard_provider.dart';
+import '../../Upload/provider/lab_result_providers.dart';
 
 // Provider to hold search query text
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -62,6 +64,8 @@ class PatientScreen extends ConsumerWidget {
       builder: (_) => RegisterCreateProfileDialog(
         onProfileCreated: () {
           ref.invalidate(fetchAllPatientsProvider);
+          ref.invalidate(dashboardProvider);
+          ref.invalidate(labResultsProvider); 
         },
       ),
     );
@@ -74,10 +78,17 @@ class PatientScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditProfileDialog(BuildContext context, PatientProfile profile) {
+  void _showEditProfileDialog(
+      BuildContext context, WidgetRef ref, PatientProfile profile) {
+
     showDialog(
       context: context,
-      builder: (_) => EditProfileDialog(profile: profile),
+      builder: (_) => EditProfileDialog(profile: profile,
+        onProfileUpdated: () {
+          ref.invalidate(fetchAllPatientsProvider);
+          ref.invalidate(dashboardProvider);
+        },
+      ),
     );
   }
 
@@ -162,7 +173,8 @@ class PatientScreen extends ConsumerWidget {
                         trailing: IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () =>
-                              _showEditProfileDialog(context, patient),
+                              _showEditProfileDialog(context, ref, patient),
+
                         ),
                       );
                     },

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/api/api_client.dart';
-import '../model/auth_response.dart';
+
 import '../model/create_profile_request.dart';
 import '../model/patient_profile.dart';
 import '../service/patient_service.dart';

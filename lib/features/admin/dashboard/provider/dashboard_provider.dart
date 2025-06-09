@@ -53,7 +53,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
     try {
       final stats = await _dashboardService.fetchDashboard();
-      print('Dashboard fetched: $stats');
+      
 
       if (stats == null) {
         print('Warning: dashboard stats is null!');
@@ -66,7 +66,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         error: null,
       );
     } catch (e, st) {
-      print('Error fetching dashboard: $e\n$st');
+      
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,

@@ -6,6 +6,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../provider/lab_result_providers.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../widgets/admin-bottom_bar.dart';
+import '../../dashboard/provider/dashboard_provider.dart';
+import '../../Patient/provider/patient_provider.dart';
 
 class LabResultListScreen extends ConsumerWidget {
   const LabResultListScreen({super.key});
@@ -52,6 +54,7 @@ class LabResultListScreen extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Lab result deleted')),
               );
+              ref.invalidate(dashboardProvider);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
@@ -64,9 +67,14 @@ class LabResultListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final labResultsAsync = ref.watch(labResultsProvider);
+    final patientsAsync = ref.watch(fetchAllPatientsProvider);
     final location =
         GoRouter.of(context).routeInformationProvider.value?.location ?? '';
     final currentIndex = _getTabIndex(location);
+    final patientMap = patientsAsync.maybeWhen(
+      data: (patients) => {for (var p in patients) p.patientId: p},
+      orElse: () => {},
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -115,6 +123,8 @@ class LabResultListScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final result = results[index];
+              final patientProfile = patientMap[result.patientId];
+              final patientName = patientProfile?.name ?? result.patientName;
 
               return Card(
                 shape: RoundedRectangleBorder(
@@ -125,7 +135,7 @@ class LabResultListScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        result.patientName,
+                        patientName,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text('id: ${result.patientId}'),
