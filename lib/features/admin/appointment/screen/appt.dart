@@ -51,8 +51,13 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Appointments'),
-        centerTitle: true,
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Appointments', style: TextStyle(color: Colors.black)),
+        ),
+        actions: [
+          // ... existing code ...
+        ],
       ),
       body: Column(
         children: [

@@ -87,16 +87,39 @@ final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Dashboard', style: TextStyle(color: Colors.black)),
+        ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: hasPendingAppointments ? Colors.red : Colors.black,
-            ),
-            onPressed: () {
-              context.go("/appointments-approval");
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.black,
+                  size: 30,
+                ),
+                onPressed: () {
+                  context.go("/appointments-approval");
+                },
+              ),
+              if (hasPendingAppointments)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: SizedBox(
+                    width: 10,
+                    height: 10,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -116,7 +139,7 @@ final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.5,
+                childAspectRatio: 1.2,
                 children: [
                   StatCard(
                     icon: Icons.calendar_today,
@@ -158,15 +181,15 @@ final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
                                     Container(
                                       width: 70,
                                       height: 70,
-                                      decoration: const BoxDecoration(
+                                      decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Color(0xFFE3EAFE),
+                                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         appt.time,
-                                        style: const TextStyle(
-                                          color: Color(0xFF3B5BDB),
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -193,9 +216,9 @@ final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
                             ),
                             TextButton(
                               onPressed: () => context.go('/admin-appt'),
-                              child: const Text(
+                              child: Text(
                                 "View All Appointments",
-                                style: TextStyle(color: Color(0xFF3B5BDB)),
+                                style: TextStyle(color: Theme.of(context).colorScheme.primary),
                               ),
                             ),
                           ],

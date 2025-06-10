@@ -210,7 +210,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text('Are you new here? '),
                   GestureDetector(
-                    onTap: () => context.go('/register'),
+                    onTap: () => context.push('/register'),
                     child: const Text(
                       'Create an account',
                       style: TextStyle(

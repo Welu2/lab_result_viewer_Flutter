@@ -24,13 +24,88 @@ final filteredPatientsProvider = Provider<List<PatientProfile>>((ref) {
       if (query.isEmpty) {
         return patients;
       }
-      return patients
-          .where((p) => p.name.toLowerCase().contains(query))
-          .toList();
+      return patients.where((p) => 
+        p.name.toLowerCase().contains(query) ||
+        p.patientId.toLowerCase().contains(query) ||
+        p.email.toLowerCase().contains(query) ||
+        p.dateOfBirth.contains(query)
+      ).toList();
     },
     orElse: () => [],
   );
 });
+
+class PatientCard extends StatelessWidget {
+  final PatientProfile patient;
+  final VoidCallback onEdit;
+  final VoidCallback onViewProfile;
+
+  const PatientCard({
+    Key? key,
+    required this.patient,
+    required this.onEdit,
+    required this.onViewProfile,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    patient.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: onEdit,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'ID: ${patient.patientId}',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            Text(
+              'DOB: ${patient.dateOfBirth}',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.email, size: 18, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  patient.email,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Divider(),
+            TextButton(
+              onPressed: onViewProfile,
+              child: const Text('View Full Profile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class PatientScreen extends ConsumerWidget {
   const PatientScreen({Key? key}) : super(key: key);
@@ -65,7 +140,7 @@ class PatientScreen extends ConsumerWidget {
         onProfileCreated: () {
           ref.invalidate(fetchAllPatientsProvider);
           ref.invalidate(dashboardProvider);
-          ref.invalidate(labResultsProvider); 
+          ref.invalidate(labResultsProvider);
         },
       ),
     );
@@ -80,10 +155,10 @@ class PatientScreen extends ConsumerWidget {
 
   void _showEditProfileDialog(
       BuildContext context, WidgetRef ref, PatientProfile profile) {
-
     showDialog(
       context: context,
-      builder: (_) => EditProfileDialog(profile: profile,
+      builder: (_) => EditProfileDialog(
+        profile: profile,
         onProfileUpdated: () {
           ref.invalidate(fetchAllPatientsProvider);
           ref.invalidate(dashboardProvider);
@@ -100,10 +175,16 @@ class PatientScreen extends ConsumerWidget {
 
     final searchQuery = ref.watch(searchQueryProvider);
     final filteredPatients = ref.watch(filteredPatientsProvider);
+    final patientsAsync = ref.watch(fetchAllPatientsProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('Patients'),
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Patients', style: TextStyle(color: Colors.black)),
+        ),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -111,76 +192,62 @@ class PatientScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search patients by name',
-                border: OutlineInputBorder(),
+      body: patientsAsync.when(
+        data: (_) {
+          if (filteredPatients.isEmpty) {
+            return Center(
+              child: Text(
+                searchQuery.isEmpty ? 'No patients found.' : 'No matching patients.',
+                style: const TextStyle(color: Colors.grey),
               ),
-              onChanged: (value) =>
-                  ref.read(searchQueryProvider.notifier).state = value,
-            ),
-          ),
-          Expanded(
-            child: filteredPatients.isEmpty
-                ? Center(
-                    child: Text(searchQuery.isEmpty
-                        ? 'No patients found.'
-                        : 'No matching patients.'),
-                  )
-                : ListView.separated(
-                    itemCount: filteredPatients.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final patient = filteredPatients[index];
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        leading: const Icon(Icons.person),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(patient.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            Text('ID: ${patient.patientId}'),
-                            Text('DOB: ${patient.dateOfBirth}'),
-                            Row(
-                              children: [
-                                const Icon(Icons.email, size: 16),
-                                const SizedBox(width: 4),
-                                Text(patient.email),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            GestureDetector(
-                              onTap: () =>
-                                  _showViewProfileDialog(context, patient),
-                              child: Text(
-                                'View Full Profile',
-                                style: TextStyle(
-                                  color: Theme.of(context).primaryColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () =>
-                              _showEditProfileDialog(context, ref, patient),
-
-                        ),
-                      );
-                    },
+            );
+          }
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search patients…',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   ),
+                  onChanged: (value) =>
+                      ref.read(searchQueryProvider.notifier).state = value,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  itemCount: filteredPatients.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final patient = filteredPatients[index];
+                    return PatientCard(
+                      patient: patient,
+                      onEdit: () => _showEditProfileDialog(context, ref, patient),
+                      onViewProfile: () => _showViewProfileDialog(context, patient),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Text(
+            'Error: $error',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
-        ],
+        ),
       ),
       bottomNavigationBar: MainBottomNavigation(
         currentIndex: currentIndex,

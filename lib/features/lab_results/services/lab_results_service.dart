@@ -1,5 +1,6 @@
 import '../../../core/api/api_client.dart';
 import '../models/lab_result.dart';
+import 'package:dio/dio.dart';
 
 class LabResultsService {
   final ApiClient _apiClient;
@@ -12,6 +13,23 @@ class LabResultsService {
   }
 
   String getDownloadUrl(int labResultId) {
-    return '${ApiClient.baseUrl}/lab-results/download/$labResultId';
+    final baseUrl = ApiClient.baseUrl.endsWith('/') 
+        ? ApiClient.baseUrl.substring(0, ApiClient.baseUrl.length - 1)
+        : ApiClient.baseUrl;
+    return '$baseUrl/lab-results/download/$labResultId';
+  }
+
+  Future<Response> downloadLabResult(int labResultId) async {
+    final url = getDownloadUrl(labResultId);
+    return await _apiClient.dio.get(
+      url,
+      options: Options(
+        responseType: ResponseType.bytes,
+        followRedirects: true,
+        validateStatus: (status) {
+          return status! < 500;
+        },
+      ),
+    );
   }
 } 

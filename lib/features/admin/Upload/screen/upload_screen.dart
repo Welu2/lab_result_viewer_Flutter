@@ -78,7 +78,10 @@ class _UploadLabReportScreenState extends ConsumerState<UploadLabReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Upload Lab Report"),
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Upload', style: TextStyle(color: Colors.black)),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

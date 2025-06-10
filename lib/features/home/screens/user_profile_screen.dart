@@ -37,7 +37,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       dateOfBirth: profile.dateOfBirth ?? '',
       onRetry: () => notifier.fetchProfile(),
       onChangeEmail: () => _showChangeEmailDialog(context, notifier),
-      onNotificationSetting: () => context.go('/notifications'),
+      onNotificationSetting: () => context.push('/notifications'),
       onLogout: () => _confirmLogout(context, notifier),
       onDelete: () => _confirmDeleteProfile(context, notifier),
     );
@@ -134,47 +134,53 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context, true);
-                    if (profileState.id != null) {
-                      final success =
-                          await notifier.deleteProfile(profileState.id!);
-                      if (success && context.mounted) {
-                        context.go('/login');
-                      } else if (context.mounted) {
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context, true);
+                      if (profileState.id != null) {
+                        final success =
+                            await notifier.deleteProfile(profileState.id!);
+                        if (success && context.mounted) {
+                          context.go('/login');
+                        } else if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Failed to delete profile. Please try again.'),
+                                backgroundColor: Colors.red),
+                          );
+                        }
+                      } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text(
-                                  'Failed to delete profile. Please try again.'),
+                              content: Text('Error: Profile ID is missing'),
                               backgroundColor: Colors.red),
                         );
                       }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Error: Profile ID is missing'),
-                            backgroundColor: Colors.red),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50))),
-                  child: const Text('Delete Account',
-                      style: TextStyle(color: Colors.white)),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50))),
-                    child: const Text('Cancel')),
+                    child: const Text('Delete Account',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50))),
+                      child: const Text('Cancel')),
+                ),
               ],
             )
           ],

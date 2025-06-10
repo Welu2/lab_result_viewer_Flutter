@@ -162,11 +162,18 @@ class ProfileView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(icon, color: primaryColor),
-            const SizedBox(width: 16),
-            Expanded(child: Text(label, style: bodyStyle)),
-            if (showChevron) const Icon(Icons.chevron_right, color: Colors.grey),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: primaryColor),
+                const SizedBox(width: 16),
+                Text(label, style: bodyStyle),
+              ],
+            ),
+            if (showChevron) 
+              const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),

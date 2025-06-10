@@ -39,14 +39,6 @@ class AppointmentService {
       });
 
       final appointment = Appointment.fromJson(response.data);
-      
-      // Send notification to admin
-      await _apiClient.post('/notifications/admin', data: {
-        'message': 'New appointment request for $testType on $date at $time',
-        'type': 'appointment',
-        'recipientType': 'admin',
-        'appointmentId': appointment.id,
-      });
 
       return appointment;
     } catch (e) {
@@ -57,7 +49,7 @@ class AppointmentService {
 
   Future<Appointment> updateAppointment(String id, String testType, String date, String time) async {
     try {
-      final response = await _apiClient.put('/appointments/$id', data: {
+      final response = await _apiClient.patch('/appointments/$id', data: {
         'testType': testType,
         'date': date,
         'time': time,
@@ -65,14 +57,6 @@ class AppointmentService {
 
       final appointment = Appointment.fromJson(response.data);
       
-      // Send notification to admin about rescheduling
-      await _apiClient.post('/notifications/admin', data: {
-        'message': 'Appointment rescheduled for $testType on $date at $time',
-        'type': 'appointment',
-        'recipientType': 'admin',
-        'appointmentId': appointment.id,
-      });
-
       return appointment;
     } catch (e) {
       print('Error updating appointment: $e');

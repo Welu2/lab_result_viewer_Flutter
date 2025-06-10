@@ -30,6 +30,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileProvider.notifier).fetchProfile();
+      ref.read(labResultsProvider.notifier).fetchLabResults();
       SessionManager().getToken().then((token) {
         if (token != null) {
           ref
@@ -54,16 +55,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
-    final health = ref.watch(healthSummaryProvider);
+    final labResults = ref.watch(labResultsProvider);
     final notif = ref.watch(notificationProvider);
 
     return HomeView(
       userName: profile.name ?? '',
       unreadNotifications: notif.unreadCount,
-      totalTests: health.totalTests,
-      abnormalResults: health.abnormalResults,
+      totalTests: labResults.labResults.length,
+      abnormalResults: 0,
       services: _services,
-      onNotificationsTap: () => context.go('/notifications'),
+      onNotificationsTap: () => context.push('/notifications'),
       onRefresh: _onRefresh,
       onSearchChanged: (val) => setState(() => search = val),
       onServiceTap: (_) {/* your existing empty handler */},

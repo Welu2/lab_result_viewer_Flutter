@@ -1,30 +1,160 @@
 import 'package:flutter/material.dart';
-import '../models/lab_result.dart';
+import '../models/lab_result.dart'; 
 
-/// A pure, stateless widget that renders:
-///  • A loading spinner if [isLoading]
-///  • An error message if [error] is non-null
-///  • An “empty” placeholder if [results] is empty
-///  • A ListView of [LabResultCard] if [results] is non-empty
+
+class LabResultCard extends StatelessWidget {
+  final LabResult result;
+  final VoidCallback onView;
+  final VoidCallback onDownload;
+  final VoidCallback onCopyLink;
+  final VoidCallback onDownloadPdf;
+  final bool isDownloading; // CORRECTED: No space in variable name
+
+  const LabResultCard({
+    Key? key,
+    required this.result,
+    required this.onView,
+    required this.onDownload,
+    required this.onCopyLink,
+    required this.onDownloadPdf,
+    this.isDownloading = false, // CORRECTED: Removed 'required'
+  }) : super(key: key);
+  
+  void _showShareDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Share Result", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+        contentPadding: const EdgeInsets.all(24.0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  onCopyLink();
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Copy Link"),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  onDownloadPdf();
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Download PDF"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final statusString = result.status ?? '';
+    final (statusText, statusColor) = switch (statusString.toLowerCase()) {
+      "normal" || "normal results" => ("Normal Results", Colors.green[700]),
+      "requires attention" => ("Requires Attention", Colors.orange[700]),
+      "follow-up needed" => ("Follow-Up Needed", Colors.red[700]),
+      _ => (statusString, Colors.grey),
+    };
+
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(result.title ?? 'No Title', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      if (result.reportDate?.isNotEmpty ?? false)
+                        Text(result.reportDate!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600])),
+                      if (result.reportType?.isNotEmpty ?? false)
+                        Text(result.reportType!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600])),
+                      if (statusText.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            statusText,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: statusColor, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // Disable share button while this card's item is downloading
+                IconButton(
+                  icon: Icon(Icons.share_outlined, color: Theme.of(context).colorScheme.primary),
+                  onPressed: isDownloading ? null : () => _showShareDialog(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // --- CORRECTED: Added the download indicator logic to the buttons ---
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: isDownloading ? null : onView,
+                    child: isDownloading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text("View Report"),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: isDownloading ? null : onDownload,
+                    child: const Text("Download"),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- LabResultsView Widget ---
 class LabResultsView extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final List<LabResult> results;
-
-  /// Called when the user taps the share icon for a result.
-  final void Function(LabResult) onShare;
-
-  /// Called when the user taps the “View Report” or “Download” button.
-  final void Function(LabResult) onOpen;
+  final Function(LabResult) onView;
+  final Function(LabResult) onDownload;
+  final Function(LabResult) onCopyLink;
+  final Function(LabResult) onDownloadPdf;
+  final int? downloadingId; // CORRECTED: Added the missing property declaration
 
   const LabResultsView({
-    Key? key,
+    super.key,
     required this.isLoading,
-    required this.error,
+    this.error,
     required this.results,
-    required this.onShare,
-    required this.onOpen,
-  }) : super(key: key);
+    required this.onView,
+    required this.onDownload,
+    required this.onCopyLink,
+    required this.onDownloadPdf,
+    required this.downloadingId, // Now this is correctly defined
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,141 +165,24 @@ class LabResultsView extends StatelessWidget {
       return Center(child: Text('Error: $error'));
     }
     if (results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.insert_drive_file, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('No Lab Results Found',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('No results match your filters',
-                style: TextStyle(color: Colors.grey)),
-          ],
-        ),
-      );
+      return const Center(child: Text('No lab results found.'));
     }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
+    return ListView.builder(
       itemCount: results.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) {
-        final r = results[i];
+      itemBuilder: (context, index) {
+        final result = results[index];
+        // CORRECTED: Define the variable before using it
+        final bool isCurrentlyDownloading = result.id == downloadingId;
+
         return LabResultCard(
-          result: r,
-          onShare: () => onShare(r),
-          onOpen: () => onOpen(r),
+          result: result,
+          isDownloading: isCurrentlyDownloading,
+          onView: () => onView(result),
+          onDownload: () => onDownload(result),
+          onCopyLink: () => onCopyLink(result),
+          onDownloadPdf: () => onDownloadPdf(result),
         );
       },
-    );
-  }
-}
-
-/// A slimmed‐down version of your card that only needs two callbacks.
-class LabResultCard extends StatelessWidget {
-  final LabResult result;
-  final VoidCallback onShare;
-  final VoidCallback onOpen;
-
-  const LabResultCard({
-    Key? key,
-    required this.result,
-    required this.onShare,
-    required this.onOpen,
-  }) : super(key: key);
-
-  Color _statusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'normal':
-      case 'normal results':
-        return const Color(0xFF3CB371);
-      case 'requires attention':
-        return const Color(0xFFFFA500);
-      case 'follow-up needed':
-        return const Color(0xFFDB3B3B);
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _statusText(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'normal':
-      case 'normal results':
-        return 'Normal Results';
-      case 'requires attention':
-        return 'Requires Attention';
-      case 'follow-up needed':
-        return 'Follow-Up Needed';
-      default:
-        return status ?? '';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.grey[100],
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title, date, status
-            Text(result.title ?? '',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16)),
-            if ((result.reportDate ?? '').isNotEmpty)
-              Text(result.reportDate!,
-                  style:
-                      const TextStyle(color: Colors.grey, fontSize: 13)),
-            if ((result.status ?? '').isNotEmpty)
-              Text(_statusText(result.status),
-                  style: TextStyle(
-                      color: _statusColor(result.status),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13)),
-            // Share button
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.share_outlined),
-                onPressed: onShare,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // View/Download buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: onOpen,
-                    child: const Text('View Report'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: onOpen,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.download_outlined, size: 18),
-                        SizedBox(width: 4),
-                        Text('Download'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

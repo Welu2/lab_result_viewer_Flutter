@@ -30,7 +30,10 @@ class _AppointmentsApprovalScreenState extends ConsumerState<AppointmentsApprova
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/admin-dashboard'),
         ),
-        title: const Text('Appointments Approval'),
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Approvals', style: TextStyle(color: Colors.black)),
+        ),
         centerTitle: true,
       ),
       body: state.when(
@@ -103,11 +106,15 @@ class _AppointmentsApprovalScreenState extends ConsumerState<AppointmentsApprova
                               children: [
                                 const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
                                 const SizedBox(width: 6),
-                                Text('Date: ${appointment.date}'),
+                                Expanded(
+                                  child: Text('Date: ${appointment.date}'),
+                                ),
                                 const SizedBox(width: 16),
                                 const Icon(Icons.access_time, size: 18, color: Colors.grey),
                                 const SizedBox(width: 6),
-                                Text('Time: ${appointment.time}'),
+                                Expanded(
+                                  child: Text('Time: ${appointment.time}'),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),

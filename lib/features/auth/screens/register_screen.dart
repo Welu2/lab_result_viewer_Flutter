@@ -176,7 +176,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   const Text('Already have an account? '),
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () => context.push('/login'),
                     child: const Text(
                       'Log in',
                       style: TextStyle(

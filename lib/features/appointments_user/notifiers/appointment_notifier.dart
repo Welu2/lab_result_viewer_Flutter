@@ -4,6 +4,18 @@ import '../services/appointment_service.dart';
 import '../../../core/api/api_client.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 
+enum BookingStatus {
+  initial,
+  loading,
+  success,
+  reschedulingSuccess,
+  failure,
+}
+
+final bookingStatusProvider = StateProvider<BookingStatus>((ref) {
+  return BookingStatus.initial;
+});
+
 // Provide the API client
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
@@ -23,8 +35,6 @@ class AppointmentNotifier extends StateNotifier<List<Appointment>> {
       state = appointments;
     } catch (e) {
       print('Error loading appointments: $e');
-      // Consider adding a way to notify the UI about the error
-      // For now, rethrow to let the UI handle it or for further debugging.
       rethrow;
     }
   }

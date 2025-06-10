@@ -78,12 +78,9 @@ class LabResultListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Lab Result', style: TextStyle(fontSize: 20)),
-            Text('Management', style: TextStyle(fontSize: 14)),
-          ],
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Lab Results', style: TextStyle(color: Colors.black)),
         ),
         actions: [
           Padding(
