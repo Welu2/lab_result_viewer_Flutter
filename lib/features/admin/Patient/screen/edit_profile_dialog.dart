@@ -126,13 +126,7 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
                 onSaved: (v) => dob = v!.trim(),
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                initialValue: email,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (v) =>
-                    v != null && v.contains('@') ? null : 'Invalid email',
-                onSaved: (v) => email = v!.trim(),
-              ),
+              
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: ['Male', 'Female']

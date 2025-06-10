@@ -33,6 +33,7 @@ class _RegisterCreateProfileDialogState
 
   bool isLoading = false;
   String? error;
+  bool _showPassword = false;
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -106,7 +107,8 @@ class _RegisterCreateProfileDialogState
               ),
               _buildTextField(
                 label: 'Password',
-                obscureText: true,
+                obscureText: !_showPassword,
+                isPassword: true,
                 validator: (v) =>
                     v != null && v.length >= 6 ? null : 'Min 6 chars',
                 onSaved: (v) => password = v!.trim(),
@@ -187,14 +189,28 @@ class _RegisterCreateProfileDialogState
     required String label,
     TextInputType? keyboardType,
     bool obscureText = false,
+    bool isPassword = false,
     String? Function(String?)? validator,
     required void Function(String?) onSaved,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
-        decoration:
-            InputDecoration(labelText: label, border: OutlineInputBorder()),
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                      _showPassword ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                )
+              : null,
+        ),
         keyboardType: keyboardType,
         obscureText: obscureText,
         validator: validator,

@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/approval_model.dart';
 import '../services/approval_service.dart';
 import "approval_provider.dart";
-
+import "../../appointment/provider/appt_provider.dart";
+import '../../dashboard/provider/dashboard_provider.dart';
 
 class AppointmentNotifier extends AsyncNotifier<List<Appointment>> {
   late final AppointmentsService _service;
@@ -27,10 +28,17 @@ class AppointmentNotifier extends AsyncNotifier<List<Appointment>> {
   Future<void> approve(int id) async {
     try {
       await _service.approve(id);
-      
-      await fetchPending(); // Refresh pending appointments list
+
+      await fetchPending(); // Refresh pending list
+
+      // Invalidate all filters so AppointmentsScreen reloads
+      for (final filter in ['today', 'upcoming', 'past']) {
+        ref.invalidate(appointmentsProvider(filter));
+        ref.invalidate(dashboardProvider);
+      }
     } catch (e) {
-    
+      // Optionally log or handle error
+      print('Approve failed: $e');
     }
   }
 
@@ -38,9 +46,7 @@ class AppointmentNotifier extends AsyncNotifier<List<Appointment>> {
     try {
       await _service.decline(id);
       await fetchPending(); // Refresh pending appointments list
-    } catch (e) {
-      
-    }
+    } catch (e) {}
   }
 }
 

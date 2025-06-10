@@ -6,6 +6,7 @@ import '../../../../widgets/admin-bottom_bar.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
+
 class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({Key? key}) : super(key: key);
 
@@ -23,7 +24,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
       '/patients',
       '/admin-upload',
       '/admin-appt',
-      '/setting', // fixed spelling
+      '/setting',
     ];
     final index = tabRoutes.indexWhere((route) => location.startsWith(route));
     return index != -1 ? index : 0;
@@ -35,7 +36,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
       '/patients',
       '/admin-upload',
       '/admin-appt',
-      '/setting', // fixed spelling
+      '/setting',
     ];
     context.go(tabRoutes[index]);
   }
@@ -55,9 +56,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
           alignment: Alignment.centerLeft,
           child: Text('Appointments', style: TextStyle(color: Colors.black)),
         ),
-        actions: [
-          // ... existing code ...
-        ],
+        backgroundColor: Colors.white,
       ),
       body: Column(
         children: [
@@ -65,31 +64,45 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
           const SizedBox(height: 8),
           Expanded(
             child: appointmentsAsync.when(
-              data: (appointments) => ListView.builder(
-                itemCount: appointments.length,
-                itemBuilder: (context, index) {
-                  final appt = appointments[index];
-                  final date = DateTime.parse(appt.date);
-                  final time = appt.time;
-                  final testType = appt.testType;
-                  final patientId = appt.patient.patientId;
-
-                  return ListTile(
-                    leading: const Icon(Icons.access_time),
-                    title: Text('$time '),
-                    subtitle: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text('$testType'),
-      Text('$patientId'),
-    ],
-  ),
-                    trailing: Text(DateFormat('MMM d').format(date)),
+              data: (appointments) {
+                if (appointments.isEmpty) {
+                  return Center(
+                    child: Text(
+                      _getEmptyMessageForFilter(selectedFilter),
+                      style: const TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
                   );
-                },
-              ),
+                }
+
+                return ListView.builder(
+                  itemCount: appointments.length,
+                  itemBuilder: (context, index) {
+                    final appt = appointments[index];
+                    final date = DateTime.parse(appt.date);
+                    final time = appt.time;
+                    final testType = appt.testType;
+                    final patientId = appt.patient.patientId;
+
+                    return ListTile(
+                      leading: const Icon(Icons.access_time),
+                      title: Text(time),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                         Text(testType ?? 'No test type'),
+                          Text(patientId ?? 'No patient ID'),
+                        ],
+                      ),
+                      trailing: Text(DateFormat('MMM d').format(date)),
+                    );
+                  },
+                );
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(
+                child: Text('Error: $e',
+                    style: const TextStyle(color: Colors.red)),
+              ),
             ),
           ),
         ],
@@ -136,5 +149,18 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
         }),
       ),
     );
+  }
+
+  String _getEmptyMessageForFilter(String filter) {
+    switch (filter) {
+      case 'today':
+        return 'No appointments for today.';
+      case 'upcoming':
+        return 'No upcoming appointments.';
+      case 'past':
+        return 'No past appointments.';
+      default:
+        return 'No appointments found.';
+    }
   }
 }

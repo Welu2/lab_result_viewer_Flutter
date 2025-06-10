@@ -192,39 +192,41 @@ class PatientScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: patientsAsync.when(
-        data: (_) {
-          if (filteredPatients.isEmpty) {
-            return Center(
-              child: Text(
-                searchQuery.isEmpty ? 'No patients found.' : 'No matching patients.',
-                style: const TextStyle(color: Colors.grey),
-              ),
-            );
-          }
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search patients…',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  onChanged: (value) =>
-                      ref.read(searchQueryProvider.notifier).state = value,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search patients…',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.separated(
+              onChanged: (value) =>
+                  ref.read(searchQueryProvider.notifier).state = value,
+            ),
+          ),
+          Expanded(
+            child: patientsAsync.when(
+              data: (_) {
+                if (filteredPatients.isEmpty) {
+                  return Center(
+                    child: Text(
+                      searchQuery.isEmpty
+                          ? 'No patients found.'
+                          : 'No matching patients.',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemCount: filteredPatients.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -232,22 +234,24 @@ class PatientScreen extends ConsumerWidget {
                     final patient = filteredPatients[index];
                     return PatientCard(
                       patient: patient,
-                      onEdit: () => _showEditProfileDialog(context, ref, patient),
-                      onViewProfile: () => _showViewProfileDialog(context, patient),
+                      onEdit: () =>
+                          _showEditProfileDialog(context, ref, patient),
+                      onViewProfile: () =>
+                          _showViewProfileDialog(context, patient),
                     );
                   },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: Text(
+                  'Error: $error',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Text(
-            'Error: $error',
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
-        ),
+        ],
       ),
       bottomNavigationBar: MainBottomNavigation(
         currentIndex: currentIndex,
