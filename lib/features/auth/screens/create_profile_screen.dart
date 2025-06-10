@@ -1,10 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../widgets/custom_button.dart';
-import '../../../widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
 import '../models/auth_models.dart';
 import '../../home/providers/profile_provider.dart';

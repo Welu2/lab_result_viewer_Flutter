@@ -58,7 +58,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardProvider);
     final location =
-        GoRouter.of(context).routeInformationProvider.value?.location ?? '';
+        GoRouter.of(context).routeInformationProvider.value.location ?? '';
     final currentIndex = _getTabIndex(location);
 
 final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
@@ -145,8 +145,7 @@ final hasPendingAppointments = ref.watch(hasPendingAppointmentsProvider);
                     borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: upcomingAppointments == null ||
-                          upcomingAppointments.isEmpty
+                  child: upcomingAppointments.isEmpty
                       ? const Text("No upcoming appointments")
                       : Column(
                           mainAxisSize: MainAxisSize.min,

@@ -69,7 +69,7 @@ class LabResultListScreen extends ConsumerWidget {
     final labResultsAsync = ref.watch(labResultsProvider);
     final patientsAsync = ref.watch(fetchAllPatientsProvider);
     final location =
-        GoRouter.of(context).routeInformationProvider.value?.location ?? '';
+        GoRouter.of(context).routeInformationProvider.value.location ?? '';
     final currentIndex = _getTabIndex(location);
     final patientMap = patientsAsync.maybeWhen(
       data: (patients) => {for (var p in patients) p.patientId: p},

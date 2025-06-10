@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/appointment.dart';
+import 'package:go_router/go_router.dart';
+
+import '../widgets/appointments_view.dart';
 import '../notifiers/appointment_notifier.dart';
+import '../models/appointment.dart';
 
 class UserAppointmentsScreen extends ConsumerStatefulWidget {
-  const UserAppointmentsScreen({Key? key}) : super(key: key);
+  const UserAppointmentsScreen({super.key});
 
   @override
-  ConsumerState<UserAppointmentsScreen> createState() => _UserAppointmentsScreenState();
+  ConsumerState<UserAppointmentsScreen> createState() =>
+      _UserAppointmentsScreenState();
 }
 
-class _UserAppointmentsScreenState extends ConsumerState<UserAppointmentsScreen> {
+class _UserAppointmentsScreenState
+    extends ConsumerState<UserAppointmentsScreen> {
   String _sortBy = 'date';
 
   @override
@@ -24,115 +29,19 @@ class _UserAppointmentsScreenState extends ConsumerState<UserAppointmentsScreen>
   @override
   Widget build(BuildContext context) {
     final appointments = ref.watch(appointmentNotifierProvider);
-    final displayList = [...appointments]
-      ..sort((a, b) => _sortBy == 'name'
-          ? a.testType.compareTo(b.testType)
-          : a.date.compareTo(b.date));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Appointments')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildTopRow(),
-            const SizedBox(height: 16),
-            Expanded(
-              child: displayList.isEmpty
-                  ? const Center(
-                      child: Text('No appointments found', style: TextStyle(color: Colors.grey)),
-                    )
-                  : ListView.builder(
-                      itemCount: displayList.length,
-                      itemBuilder: (_, idx) => _buildAppointmentCard(displayList[idx]),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopRow() {
-    return Row(
-      children: [
-        PopupMenuButton<String>(
-          icon: Icon(
-          Icons.sort,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-          onSelected: (val) => setState(() => _sortBy = val),
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'name', child: Text('By Name')),
-            PopupMenuItem(value: 'date', child: Text('By Date')),
-          ],
-        ),
-        const SizedBox(width: 8),
-        Text('by $_sortBy', style: const TextStyle(fontSize: 16)),
-        const Spacer(),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-          onPressed: () => _showScheduleDialog(isReschedule: false),
-          child: const Text('Book New Appointment'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAppointmentCard(Appointment appt) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(appt.testType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                Chip(
-                  label: Text(
-                    appt.status == 'pending' ? 'Pending' : 'Scheduled',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: appt.status == 'pending' ? Colors.orange : Colors.green,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 18, color: Colors.green),
-                const SizedBox(width: 6),
-                Text(appt.date),
-                const SizedBox(width: 16),
-                const Icon(Icons.access_time, size: 18, color: Colors.green),
-                const SizedBox(width: 6),
-                Text(appt.time),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _showScheduleDialog(isReschedule: true, appointment: appt),
-                  child: Text(
-                    'Reschedule',
-                    style: TextStyle(color: Theme.of(context).colorScheme.primary
-, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                GestureDetector(
-                  onTap: () => _showCancelDialog(appt.id),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ],
+        child: AppointmentsView(
+          appointments: appointments,
+          sortBy: _sortBy,
+          onSortSelected: (val) => setState(() => _sortBy = val),
+          onBookNew: () => _showScheduleDialog(isReschedule: false),
+          onReschedule: (appt) =>
+              _showScheduleDialog(isReschedule: true, appointment: appt),
+          onCancel: (id) => _showCancelDialog(id),
         ),
       ),
     );
