@@ -125,5 +125,67 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Successfully Scheduled'), findsNothing);
     });
+
+    testWidgets('User can view and download lab result', (WidgetTester tester) async {
+      // --- Setup (same as main.dart) ---
+      final apiClient = ApiClient();
+      final sessionManager = SessionManager();
+      final authService = AuthService(apiClient, sessionManager);
+      final profileService = ProfileService(sessionManager, apiClient);
+      final notificationService = notif_service.NotificationService(apiClient.dio);
+      final healthSummaryService = HealthSummaryService(apiClient);
+      final labResultsService = LabResultsService(apiClient);
+      final dashboardService = DashboardService(apiClient);
+      final appointmentService = AppointmentsService(apiClient);
+      final appts = AppointmentService(apiClient);
+      final report = LabReportService(apiClient);
+      final lab = LabService(apiClient);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authServiceProvider.overrideWithValue(authService),
+            profileServiceProvider.overrideWithValue(profileService),
+            notificationServiceProvider.overrideWithValue(notificationService),
+            healthSummaryServiceProvider.overrideWithValue(healthSummaryService),
+            labResultsServiceProvider.overrideWithValue(labResultsService),
+            dashboardServiceProvider.overrideWithValue(dashboardService),
+            appointmentsServiceProvider.overrideWithValue(appointmentService),
+            appointmentServiceProvider.overrideWithValue(appts),
+            labReportServiceProvider.overrideWithValue(report),
+            labServiceProvider.overrideWithValue(lab),
+          ],
+          child: const app.MyApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Login flow (reuse from previous test)
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Log In'));
+      await tester.pumpAndSettle();
+      final emailFieldFinder = find.widgetWithText(CustomTextField, 'Enter your email');
+      final passwordFieldFinder = find.widgetWithText(CustomTextField, 'Create Password');
+      await tester.enterText(emailFieldFinder, 'serkes@gmail.com');
+      await tester.enterText(passwordFieldFinder, 'H.123456');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Log in'));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // Navigate to Lab Results tab
+      await tester.tap(find.text('Lab Results'));
+      await tester.pumpAndSettle();
+      expect(find.text('Lab Results'), findsWidgets);
+      // Wait for results to load
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // Find the first Download button and tap it
+      final downloadButton = find.widgetWithText(OutlinedButton, 'Download').first;
+      expect(downloadButton, findsOneWidget);
+      await tester.tap(downloadButton);
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // Optionally, check for a loading indicator or a SnackBar (if any)
+      // expect(find.byType(CircularProgressIndicator), findsWidgets);
+      // Or check for file open/download logic if possible
+    });
   });
 }
