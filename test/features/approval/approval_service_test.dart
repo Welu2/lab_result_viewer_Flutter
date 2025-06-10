@@ -24,8 +24,22 @@ void main() {
       when(mockApiClient.get('/appointments')).thenAnswer(
             (_) async => Response(
           data: [
-            <String, dynamic>{'id': 1, 'status': 'confirmed'},
-            <String, dynamic>{'id': 2, 'status': 'pending'},
+            <String, dynamic>{
+              'id': 1,
+              'status': 'confirmed',
+              'date': '2024-03-20',
+              'time': '10:00 AM',
+              'testType': 'Blood Test',
+              'patient': {'patientId': 'P001'}
+            },
+            <String, dynamic>{
+              'id': 2,
+              'status': 'pending',
+              'date': '2024-03-21',
+              'time': '11:00 AM',
+              'testType': 'Urine Test',
+              'patient': {'patientId': 'P002'}
+            },
           ],
           requestOptions: RequestOptions(path: '/appointments'),
         ),
@@ -45,7 +59,14 @@ void main() {
       )).thenAnswer(
             (_) async => Response(
           data: [
-            <String, dynamic>{'id': 3, 'status': 'pending'}
+            <String, dynamic>{
+              'id': 3,
+              'status': 'pending',
+              'date': '2024-03-22',
+              'time': '2:00 PM',
+              'testType': 'X-Ray',
+              'patient': {'patientId': 'P003'}
+            }
           ],
           requestOptions: RequestOptions(path: '/appointments'),
         ),

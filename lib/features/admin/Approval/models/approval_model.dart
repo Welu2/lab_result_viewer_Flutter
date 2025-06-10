@@ -17,12 +17,12 @@ class Appointment {
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
     return Appointment(
-      id: json['id'] ?? "N/A",
-      status: json['status'] ?? "N/A",
-      date: json['date'] ?? "N/A",
-      time: json['time'] ?? "N/A",
-      testType: json['testType'] ?? "N/A",
-      patient: Patient.fromJson(json['patient']),
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      status: json['status']?.toString() ?? 'N/A',
+      date: json['date']?.toString() ?? 'N/A',
+      time: json['time']?.toString() ?? 'N/A',
+      testType: json['testType']?.toString() ?? 'N/A',
+      patient: json['patient'] != null ? Patient.fromJson(json['patient']) : Patient(),
     );
   }
 }
@@ -33,6 +33,6 @@ class Patient {
   Patient({this.patientId});
 
   factory Patient.fromJson(Map<String, dynamic> json) {
-    return Patient(patientId: json['patientId']);
+    return Patient(patientId: json['patientId']?.toString());
   }
 }

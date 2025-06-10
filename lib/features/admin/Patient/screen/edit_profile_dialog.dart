@@ -20,7 +20,6 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
   final _formKey = GlobalKey<FormState>();
   late String name;
   late String dob;
-  late String email;
   late String gender;
   late String? relative;
   late double? weight;
@@ -36,7 +35,6 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
     super.initState();
     name = widget.profile.name;
     dob = widget.profile.dateOfBirth;
-    email = widget.profile.email;
     gender = widget.profile.gender;
     relative = widget.profile.relative;
     weight = widget.profile.weight;
@@ -52,7 +50,6 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
     final updated = widget.profile.copyWith(
       name: name,
       dateOfBirth: dob,
-      email: email,
       gender: gender,
       relative: relative,
       weight: weight,
@@ -126,8 +123,6 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
                 onSaved: (v) => dob = v!.trim(),
               ),
               const SizedBox(height: 12),
-              
-              const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: ['Male', 'Female']
                         .map((g) => g.toLowerCase())
@@ -151,7 +146,7 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                initialValue: phoneNumber,
+                initialValue: phoneNumber
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
                 onSaved: (v) => phoneNumber = v?.trim(),
