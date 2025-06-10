@@ -6,6 +6,7 @@ import {
   Param,
   Get,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
@@ -101,15 +102,15 @@ export class AuthController {
   @Delete('delete/:id')
   @UseGuards(JwtAuthGuard)
   async deleteAccount(
-    @Param('id') patientId: string,
+    @Param('id', ParseIntPipe) id: number,
 
     @CurrentUser() user: any,
   ) {
-    if (user.patientId !== patientId && user.role !== Role.ADMIN) {
+    if (Number(user.id) !== Number(id) && user.role !== Role.ADMIN) {
       return { message: 'You do not have permission to delete this account' };
     }
     try {
-      await this.usersService.remove(patientId, user); // Pass currentUser here
+      await this.usersService.remove(id, user); // Pass currentUser here
       return { message: 'User account deleted successfully' };
     } catch (error) {
       return { message: 'Error deleting account: ' + error.message };

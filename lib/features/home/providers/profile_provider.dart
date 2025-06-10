@@ -139,9 +139,9 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     }
   }
 
-  Future<bool> deleteProfile(String profileId) async {
+  Future<bool> deleteProfile() async {
     try {
-      final success = await _profileService.deleteProfile(profileId);
+      final success = await _profileService.deleteProfile();
       if (success) {
         await _sessionManager.clearSession();
       }

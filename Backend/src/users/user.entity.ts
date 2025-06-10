@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column,OneToMany ,OneToOne} from 'typeo
 import { Appointment } from '../appointment/entities/appointment.entity';
 import { LabResult } from 'src/lab-results/entities/lab-result.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
+import { Notification } from 'src/notifications/notification.entity';
 export enum Role {
   USER = 'user',
   ADMIN = 'admin',
@@ -29,4 +30,6 @@ export class User {
   results: LabResult[];
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 }

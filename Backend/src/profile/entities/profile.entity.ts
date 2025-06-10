@@ -37,7 +37,12 @@ export class Profile {
   phoneNumber: string;
 
   // Relationship to User
-  @OneToOne(() => User, (user) => user.profile, { eager: true, cascade: true })
+  @OneToOne(
+    () => User,
+    (user) => user.profile,
+    { eager: true, cascade: true 
+    ,onDelete: 'CASCADE' },
+  )
   @JoinColumn({ name: 'userId' }) // creates a foreign key column 'userId'
   user: User;
 

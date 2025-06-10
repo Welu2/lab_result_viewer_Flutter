@@ -11,7 +11,7 @@ class ProfileService {
   Future<String?> getUserRole() async {
     final token = await _sessionManager.getToken();
     if (token == null) return null;
-    
+
     try {
       final decodedToken = JwtDecoder.decode(token);
       return decodedToken['role'] as String?;
@@ -42,19 +42,16 @@ class ProfileService {
     await _apiClient.put('/profile/notifications', data: {'enabled': enabled});
   }
 
-  Future<bool> deleteProfile(String profileId) async {
+  Future<bool> deleteProfile() async {
     try {
-      // First, delete all notifications for this user
-      await _apiClient.delete('/notifications/user');
+      final response = await _apiClient.get('/profile/me');
       
-      // Then delete the profile
-      final profileResponse = await _apiClient.delete('/profile/$profileId');
-      if (profileResponse.statusCode != 200) {
-        return false;
-      }
+      // Assuming the backend returns the user ID as an int in response.data.userId
+      final int id =
+          response.data['user']['id']; // Use ['userId'] for Map access
+      
 
-      // Finally, delete the user
-      final userResponse = await _apiClient.delete('/users/me');
+      final userResponse = await _apiClient.delete('/auth/delete/$id');
       return userResponse.statusCode == 200;
     } catch (e) {
       print('Error deleting profile and user: $e');
@@ -65,4 +62,4 @@ class ProfileService {
   Future<void> logout() async {
     await _sessionManager.clearSession();
   }
-} 
+}

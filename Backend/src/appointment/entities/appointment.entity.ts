@@ -26,7 +26,7 @@ export class Appointment {
   status: 'pending' | 'confirmed' | 'disapproved'; // Status of the appointment
 
   // Foreign key references for both user id and patientId
-  @ManyToOne(() => User, (user) => user.appointments) // One user can have many appointments
+  @ManyToOne(() => User, (user) => user.appointments, { onDelete: 'CASCADE' }) // One user can have many appointments
   @JoinColumn({ name: 'userId' }) // This will reference User's id column
   patient: User;
 

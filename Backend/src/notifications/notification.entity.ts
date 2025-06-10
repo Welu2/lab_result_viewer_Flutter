@@ -25,9 +25,16 @@ export class Notification {
   @Column({ type: 'enum', enum: ['user', 'admin'] })
   recipientType: 'user' | 'admin';
 
-  @ManyToOne(() => User, (user) => user.appointments, { nullable: true }) // One user can have many appointments
+  @ManyToOne(() => User, (user) => user.notifications, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
-  user?: User ;
+  user?: User;
+
+  // @ManyToOne(() => User, (user) => user.appointments, { nullable: true }) // One user can have many appointments
+  // @JoinColumn({ name: 'userId' })
+  // user?: User;
   @Column({ type: 'varchar', length: 255, nullable: true })
   patientId: string | null; // Store the patientId from User
 

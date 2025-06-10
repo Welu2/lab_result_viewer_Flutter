@@ -24,6 +24,10 @@ export class UsersService {
   async findById(patientId: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { patientId } });
   }
+
+  async findByuserId(id: number): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
   async save(user: User): Promise<User> {
     return this.usersRepository.save(user);
   }
@@ -72,16 +76,13 @@ export class UsersService {
   }
 
   // Remove user by ID - Only the user themselves or Admin
-  async remove(patientId: string, currentUser: User): Promise<void> {
-    if (
-      currentUser.patientId !== patientId &&
-      currentUser.role !== Role.ADMIN
-    ) {
+  async remove(id: number, currentUser: User): Promise<void> {
+    if (currentUser.id !== id && currentUser.role !== Role.ADMIN) {
       throw new ForbiddenException(
         'You do not have permission to delete this user',
       );
     }
-    await this.usersRepository.delete(patientId);
+    await this.usersRepository.delete(id);
   }
 
   // Update user data - Only the user themselves or Admin

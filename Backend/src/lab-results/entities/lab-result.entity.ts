@@ -17,7 +17,7 @@ export class LabResult {
   @Column({ default: false })
   isSent: boolean;
 
-  @ManyToOne(() => User, (user) => user.appointments) // One user can have many appointments
+  @ManyToOne(() => User, (user) => user.appointments,{onDelete: 'CASCADE'}) // One user can have many appointments
   @JoinColumn({ name: 'UserId' }) // If you want the column to be specifically 'patientId'
   user: User;
   @Column({ type: 'varchar', length: 255, nullable: true })

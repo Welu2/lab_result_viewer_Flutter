@@ -116,14 +116,14 @@ export class AuthService {
   }
 
   // Delete user account by user ID
-  async deleteAccount(patientId: string, currentUser: any) {
-    const user = await this.usersService.findById(patientId);
+  async deleteAccount(id: number, currentUser: any) {
+    const user = await this.usersService.findByuserId(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND); // Handle case where user is not found
     }
 
     // Only the user or an admin can delete the account
-    if (currentUser.id !== patientId && currentUser.role !== Role.ADMIN) {
+    if (currentUser.id !== id && currentUser.role !== Role.ADMIN) {
       throw new HttpException(
         'You do not have permission to delete this account',
         HttpStatus.FORBIDDEN, // Handle unauthorized access
@@ -131,7 +131,7 @@ export class AuthService {
     }
 
     // Pass both userId and currentUser to the remove method
-    await this.usersService.remove(patientId, currentUser);
+    await this.usersService.remove(id, currentUser);
 
     return { message: 'User account deleted successfully' }; // Return success message
   }

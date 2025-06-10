@@ -11,8 +11,7 @@ class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
 
   @override
-  ConsumerState<UserProfileScreen> createState() =>
-      _UserProfileScreenState();
+  ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
@@ -61,8 +60,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Cancel')),
             TextButton(
-                onPressed: () =>
-                    Navigator.pop(context, controller.text.trim()),
+                onPressed: () => Navigator.pop(context, controller.text.trim()),
                 child: const Text('Save')),
           ],
         );
@@ -107,12 +105,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
   Future<void> _confirmDeleteProfile(
       BuildContext context, ProfileNotifier notifier) async {
-    final profileState = ref.read(profileProvider);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -120,8 +116,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  shape: BoxShape.circle),
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
               child: const Icon(Icons.close, color: Colors.red, size: 32),
             ),
             const SizedBox(height: 16),
@@ -140,52 +137,52 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(context, true);
-                      if (profileState.id != null) {
-                        final success =
-                            await notifier.deleteProfile(profileState.id!);
-                        if (success && context.mounted) {
-                          context.go('/login');
-                        } else if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Failed to delete profile. Please try again.'),
-                                backgroundColor: Colors.red),
-                          );
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Error: Profile ID is missing'),
-                              backgroundColor: Colors.red),
-                        );
-                      }
-                    },
+                    onPressed: () => Navigator.pop(context, true),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50))),
-                    child: const Text('Delete Account',
-                        style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    child: const Text(
+                      'Delete Account',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50))),
-                      child: const Text('Cancel')),
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
     );
+
+    // 🚨 Now handle deletion and navigation here
+    if (confirmed == true) {
+      final success = await notifier.deleteProfile();
+      if (success && context.mounted) {
+        context.go('/login');
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete profile. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
