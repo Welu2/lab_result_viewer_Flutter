@@ -62,13 +62,13 @@ class AuthResponse {
 
 class User {
   final int id;
-  final String patientId;
+  final String? patientId;
   final String email;
   final String role;
 
   User({
     required this.id,
-    required this.patientId,
+    this.patientId,
     required this.email,
     required this.role,
   });
