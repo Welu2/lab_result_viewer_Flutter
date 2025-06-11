@@ -21,6 +21,7 @@ The Lab Results Viewer app is designed to enhance the convenience and accessibil
     - Role-based access control:
         - Patients: Can view only their own profiles, appointments, and lab results.
         - Lab Technicians: Can upload, update, and manage lab results and appointments.
+    
 4. **Notifications**:
     - Real-time push notifications to inform patients when:
       - New lab results are ready.
