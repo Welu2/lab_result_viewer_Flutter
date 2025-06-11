@@ -1,4 +1,5 @@
 # Lab_Result_Viewer
+
 ## 📋 Overview
 The Lab Results Viewer app is designed to enhance the convenience and accessibility of medical lab results for patients. After undergoing a test, patients will be notified when their results are available and can securely access them through the app without the need to visit the lab in person. The app also allows users to track their previous results, ensuring they remain informed about their health status at all times.
 
