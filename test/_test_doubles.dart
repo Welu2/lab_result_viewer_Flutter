@@ -31,7 +31,7 @@ class FakeAuthService extends AuthService {
 
   @override
   Future<void> logout() async {
-    // no-op
+    // no-operations
   }
 
   // All other inherited methods are never called by the settings screen.
