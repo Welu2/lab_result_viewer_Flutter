@@ -15,6 +15,7 @@ The Lab Results Viewer app is designed to enhance the convenience and accessibil
 2. **Patient Profile Management (CRUD)**:
     - Patients can create, update, and delete their profiles.
     - Lab technicians can view and access patient profiles linked to lab test orders.
+
 3. **Authentication and Authorization**:
     - Secure login for patients and lab technicians.
     - Role-based access control:
