@@ -146,7 +146,7 @@ class _EditProfileDialogState extends ConsumerState<EditProfileDialog> {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                initialValue: phoneNumber
+                initialValue: phoneNumber,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
                 onSaved: (v) => phoneNumber = v?.trim(),
